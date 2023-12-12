@@ -1,9 +1,9 @@
-##Project Overview: Affordable Braille Display
+# Project Overview: Affordable Braille Display
 
-**Introduction:**
+## Introduction:
 Initiated by DavideMarin, this project focuses on creating a cost-effective Braille display solution. The primary challenges addressed include reducing microcontroller pin usage, mitigating power and heating issues, and the introduction of a dedicated control library by ThezeroHz.
 
-**Key Challenges and Solutions:**
+## Key Challenges and Solutions:
 
 1. **Microcontroller Pin Reduction:**
    - **Challenge:** Controlling a Braille cell required a high number of microcontroller pins.
@@ -17,15 +17,15 @@ Initiated by DavideMarin, this project focuses on creating a cost-effective Brai
    - **Challenge:** Unintended touch or movement altered dot states.
    - **Solution:** Implemented a mechanism to hold dot states for a dedicated time, enhancing stability and user interaction.
 
-**Control Library by ThezeroHz:**
+## Control Library by ThezeroHz:
 
 - A dedicated display library has been developed by ThezeroHz, simplifying the process of managing and controlling Braille cells.
 
-**Optimizing Dot State Maintenance:**
+## Optimizing Dot State Maintenance:
 
 - Introduced the concepts of burn coefficient, cool coefficient, and frequency to optimize dot state maintenance.
 
-**Implementation Guidance:**
+## Implementation Guidance:
 
 - Developers can utilize the formula time = 1000/(Frequency*(burn+cool)) to configure the wave period based on project requirements.
 

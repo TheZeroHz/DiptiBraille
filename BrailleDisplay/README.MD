@@ -1,4 +1,4 @@
-**Project Overview: Affordable Braille Display**
+##Project Overview: Affordable Braille Display
 
 **Introduction:**
 Initiated by DavideMarin, this project focuses on creating a cost-effective Braille display solution. The primary challenges addressed include reducing microcontroller pin usage, mitigating power and heating issues, and the introduction of a dedicated control library by ThezeroHz.

@@ -1,21 +1,23 @@
 #include <WiFi.h>
 #include "Display.h"
 #include "Audio.h"
-#include "SD.h"
-#include <SD_MMC.h>
-#include "FS.h"
+#include <FS.h>
+#include <SD.h>
 #include <LittleFS.h>
+#include <SD_MMC.h>
 #include <FFat.h>
-#include "SPI.h"
+#include <SPI.h>
 #include <ESPFMfGK.h>
 
 #define app_core 1
 #define utility_core 0
 #define display_stack 2000
 #define audio_stack 5000
-#define webshare_stack 5000
+#define webshare_stack 10000
 #define remoteshell_stack 5000
 
+
+bool WebShareEnabled=false;
 
 
 
@@ -24,12 +26,13 @@ TaskHandle_t display_handle = NULL;
 TaskHandle_t audio_handle = NULL;
 TaskHandle_t webshare_handle = NULL;
 
-const word filemanagerport = 8080;
 
 
 Display disp;
 Audio audio;
-ESPFMfGK filemgr(filemanagerport);
+const word filemanagerport = 8080;
+ESPFMfGK filemgr(filemanagerport);  
+
 
 
 //****************************************************************************************
@@ -315,3 +318,111 @@ bool audiostatus() {
 //****************************************************************************************
 //                                  END OF AUDIO PORTION                                 *
 //****************************************************************************************
+
+
+
+
+//****************************************************************************************
+//                                   WebShare  _ T A S K                                 *
+//****************************************************************************************
+
+struct webshareMessage {
+  uint8_t cmd;
+  String txt;
+  bool status;
+  uint32_t value;
+  uint32_t ret;
+} webshareTxMessage, webshareRxMessage;
+
+enum : uint8_t {
+  GETWEBSHARE_ADDRESS,
+  WEBSHARE_STATE,
+  WEBSHARE_DISABLE,
+  WEBSHARE_ENABLE
+};
+
+QueueHandle_t webshareSetQueue = NULL;
+QueueHandle_t webshareGetQueue = NULL;
+
+void webshareCreateQueues() {
+  webshareSetQueue = xQueueCreate(10, sizeof(struct webshareMessage));
+  webshareGetQueue = xQueueCreate(10, sizeof(struct webshareMessage));
+}
+
+void webshareTask(void* parameter) {
+  webshareCreateQueues();
+  if (!webshareSetQueue || !webshareGetQueue) {
+    log_e("queues are not initialized");
+    while (true) { ; }  // endless loop
+  }
+
+  struct webshareMessage webshareRxTaskMessage;
+  struct webshareMessage webshareTxTaskMessage;
+  addFileSystems();
+  setupFilemanager();
+  while (true) {
+    
+    if (xQueueReceive(webshareSetQueue, &webshareRxTaskMessage, 1) == pdPASS) {
+    if (webshareRxTaskMessage.cmd == WEBSHARE_ENABLE) {
+        webshareTxTaskMessage.cmd = WEBSHARE_ENABLE;
+        WebShareEnabled=true;
+        xQueueSend(webshareGetQueue, &webshareTxTaskMessage, portMAX_DELAY);
+      } else if (webshareRxTaskMessage.cmd == WEBSHARE_DISABLE) {
+        webshareTxTaskMessage.cmd = WEBSHARE_DISABLE;
+        WebShareEnabled=false;
+        xQueueSend(webshareGetQueue, &webshareTxTaskMessage, portMAX_DELAY);
+      } else {
+        log_i("error");
+      }
+    }
+    if(WebShareEnabled){filemgr.handleClient();}
+    else sleep(2);
+  }
+}
+
+void webshareInit() {
+  xTaskCreatePinnedToCore(
+    webshareTask,              /* Function to implement the task */
+    "webshare",             /* Name of the task */
+    webshare_stack,         /* Stack size in words */
+    NULL,                  /* Task input parameter */
+    2 | portPRIVILEGE_BIT, /* Priority of the task */
+    &webshare_handle,       /* Task handle. */
+    app_core               /* Core where the task should run */
+  );
+}
+
+struct webshareMessage transmitReceive(webshareMessage msg) {
+  xQueueSend(webshareSetQueue, &msg, portMAX_DELAY);
+  if (xQueueReceive(webshareGetQueue, &webshareRxMessage, portMAX_DELAY) == pdPASS) {
+    if (msg.cmd != webshareRxMessage.cmd) {
+      log_e("wrong reply from message queue");
+    }
+  }
+  return webshareRxMessage;
+}
+
+
+
+
+void webshareEnable() {
+  webshareTxMessage.cmd = WEBSHARE_ENABLE;
+  webshareMessage RX = transmitReceive(webshareTxMessage);
+}
+
+void webshareDisable() {
+  webshareTxMessage.cmd = WEBSHARE_DISABLE;
+  webshareMessage RX = transmitReceive(webshareTxMessage);
+}
+
+//****************************************************************************************
+//                                  END OF WebShare PORTION                              *
+//****************************************************************************************
+
+
+
+
+
+
+
+

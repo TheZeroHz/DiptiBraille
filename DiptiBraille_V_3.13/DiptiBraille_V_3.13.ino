@@ -170,40 +170,18 @@ enum pagetype { root_menu,
                 power };
 enum pagetype c_page = root_menu;
 void setup() {
-  pinMode(SD_CS, OUTPUT);
-  digitalWrite(SD_CS, HIGH);
-  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-  SPI.setFrequency(1000000);
   Serial.begin(115200);
   WiFi.begin(ssid, password);
-  SD.begin(SD_CS);
-  if (!SD.begin()) {
-    Serial.println("Card Mount Failed");
-    return;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(10);
   }
-  uint8_t cardType = SD.cardType();
-  if (cardType == CARD_NONE) {
-    Serial.println("No SD card attached");
-    return;
-  }
-  if (cardType == CARD_MMC) {
-    Serial.println("MMC");
-  } else if (cardType == CARD_SD) {
-    Serial.println("SDSC");
-  } else if (cardType == CARD_SDHC) {
-    Serial.println("SDHC");
-  } else {
-    Serial.println("UNKNOWN");
-  }
-  // writeFile(SD, "/text.txt", " ");
-  if (!SD.exists("/text.txt")) {
-    Serial.println("new file");
-    writeFile(SD, "/text.txt", " ");
-  }
+  webshareInit();
   audioInit();
   (5000);
   displayInit();
   dispDisable();
+  
+
 
   log_i("current display frequency is: %d", dispGetFreq());
   log_i("current volume is: %d", audioGetVolume());
@@ -1804,8 +1782,8 @@ void bluetooth_page() {
     }
     if (btn_accept_isdown) {
       switch (sub_pos) {
-        case 1: Serial.println(F("                                  *turned on bluetooth"));
-        case 2: Serial.println(F("                                  *turned off bluetooth"));
+        case 1:webshareEnable();Serial.println(F("                                  *turned on bluetooth"));return;
+        case 2: webshareDisable();Serial.println(F("                                  *turned off bluetooth"));return;
       }
     }
     while (millis() - loopstart < 25) {

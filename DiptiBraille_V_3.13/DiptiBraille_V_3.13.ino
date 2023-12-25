@@ -4,6 +4,22 @@
 #include <Keypad.h>
 #include <WiFi.h>
 #include "Audio.h"
+
+
+
+// SD CARD
+#define SD_CS 10
+#define SPI_MOSI 11
+#define SPI_MISO 13
+#define SPI_SCK 12
+// I2S Amplifier
+#define I2S_DOUT 6
+#define I2S_BCLK 5
+#define I2S_LRC 4
+
+bool disp_state=true;
+bool voice_state=true;
+
 const byte ROWS = 4;
 const byte COLS = 4;
 char hexaKeys[ROWS][COLS] = {
@@ -15,38 +31,8 @@ char hexaKeys[ROWS][COLS] = {
 byte rowPins[ROWS] = { 35, 36, 37, 38 };
 byte colPins[COLS] = { 39, 40, 41, 42 };  // 18-sck, 5-cs, 23-mosi, 19-miso for sd
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
-#define SD_CS 10
-#define SPI_MOSI 11
-#define SPI_MISO 13
-#define SPI_SCK 12
-// Digital I/O used
-#define I2S_DOUT 6
-#define I2S_BCLK 5
-#define I2S_LRC 4
 
-Audio audio;
-struct audioMessage {
-  uint8_t cmd;
-  const char* txt;
-  uint32_t value;
-  uint32_t ret;
-  const char* lang;
-} audioTxMessage, audioRxMessage;
 
-enum : uint8_t { SET_VOLUME,
-                 GET_VOLUME,
-                 CONNECTTOHOST,
-                 CONNECTTOSD,
-                 CONNECTTOSPEECH,
-                 GET_AUDIOSTATUS };
-
-QueueHandle_t audioSetQueue = NULL;
-QueueHandle_t audioGetQueue = NULL;
-
-void CreateQueues() {
-  audioSetQueue = xQueueCreate(10, sizeof(struct audioMessage));
-  audioGetQueue = xQueueCreate(10, sizeof(struct audioMessage));
-}
 struct language {
   char userdata;
   String kerneldata;
@@ -214,10 +200,14 @@ void setup() {
     Serial.println("new file");
     writeFile(SD, "/text.txt", " ");
   }
-  Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
-  Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
   audioInit();
+  (5000);
+  displayInit();
+  dispDisable();
+
+  log_i("current display frequency is: %d", dispGetFreq());
   log_i("current volume is: %d", audioGetVolume());
+
 }
 
 void loop() {
@@ -1147,7 +1137,9 @@ void learn_alphabet_reading_page(void) {
     ch = ch_name.c_str();
     audioConnecttoSD(ch);
     Serial.println(bi_str);
-    //disp.writeBinStr(bi_str);
+    if(disp_state){
+    dispEnable();
+    dispPrint(bi_str.c_str());}
 btn_accept_isdown=false;
     }
 
@@ -1170,6 +1162,7 @@ btn_accept_isdown=false;
       btn_up_isdown = false;
     }
     if (btn_cancel_isdown) {
+    dispDisable();
       c_page = learn_reading;
       return;
     }
@@ -2173,8 +2166,8 @@ void voice_output_page() {
     }
     if (btn_accept_isdown) {
       switch (sub_pos) {
-        case 1: Serial.println(F("                                  *voice output enabled"));
-        case 2: Serial.println(F("                                  *voice output disabled"));
+        case 1:voice_state=true; Serial.println(F("                                  *voice output enabled"));return;
+        case 2:voice_state=false; Serial.println(F("                                  *voice output disabled"));return;
       }
     }
     while (millis() - loopstart < 25) {
@@ -2238,8 +2231,8 @@ void braille_output_page() {
     }
     if (btn_accept_isdown) {
       switch (sub_pos) {
-        case 1: Serial.println(F("                                  *braille output enabled"));
-        case 2: Serial.println(F("                                  *braille output disabled"));
+        case 1: disp_state=true;Serial.println(F("                                  *braille output enabled"));return;
+        case 2: disp_state=false;Serial.println(F("                                  *braille output disabled"));return;
       }
     }
     while (millis() - loopstart < 25) {
@@ -2590,134 +2583,6 @@ void read_for_backspace(fs::FS& fs, const char* path) {
   Serial.println(s);
   file.close();
 }
-//****************************************************************************************
-//                                   A U D I O _ T A S K                                 *
-//****************************************************************************************
-
-void audioTask(void* parameter) {
-  CreateQueues();
-  if (!audioSetQueue || !audioGetQueue) {
-    log_e("queues are not initialized");
-    while (true) { ; }  // endless loop
-  }
-
-  struct audioMessage audioRxTaskMessage;
-  struct audioMessage audioTxTaskMessage;
-
-  audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
-  audio.setVolume(20);  // 0...21
-
-  while (true) {
-    if (xQueueReceive(audioSetQueue, &audioRxTaskMessage, 1) == pdPASS) {
-      if (audioRxTaskMessage.cmd == SET_VOLUME) {
-        audioTxTaskMessage.cmd = SET_VOLUME;
-        audio.setVolume(audioRxTaskMessage.value);
-        audioTxTaskMessage.ret = 1;
-        xQueueSend(audioGetQueue, &audioTxTaskMessage, portMAX_DELAY);
-      } else if (audioRxTaskMessage.cmd == CONNECTTOHOST) {
-        audioTxTaskMessage.cmd = CONNECTTOHOST;
-        audioTxTaskMessage.ret = audio.connecttohost(audioRxTaskMessage.txt);
-        xQueueSend(audioGetQueue, &audioTxTaskMessage, portMAX_DELAY);
-      } else if (audioRxTaskMessage.cmd == CONNECTTOSD) {
-        audioTxTaskMessage.cmd = CONNECTTOSD;
-        audioTxTaskMessage.ret = audio.connecttoSD(audioRxTaskMessage.txt);
-        xQueueSend(audioGetQueue, &audioTxTaskMessage, portMAX_DELAY);
-      } else if (audioRxTaskMessage.cmd == GET_VOLUME) {
-        audioTxTaskMessage.cmd = GET_VOLUME;
-        audioTxTaskMessage.ret = audio.getVolume();
-        xQueueSend(audioGetQueue, &audioTxTaskMessage, portMAX_DELAY);
-      } else if (audioRxTaskMessage.cmd == GET_AUDIOSTATUS) {
-        audioTxTaskMessage.cmd = GET_AUDIOSTATUS;
-        audioTxTaskMessage.ret = audio.isRunning();
-        xQueueSend(audioGetQueue, &audioTxTaskMessage, portMAX_DELAY);
-      } else if (audioRxTaskMessage.cmd == CONNECTTOSPEECH) {
-        audioTxTaskMessage.cmd = CONNECTTOSPEECH;
-        audioTxTaskMessage.ret = audio.connecttospeech(audioRxTaskMessage.txt, audioRxTaskMessage.lang);
-        xQueueSend(audioGetQueue, &audioTxTaskMessage, portMAX_DELAY);
-      } else {
-        log_i("error");
-      }
-    }
-    audio.loop();
-    if (!audio.isRunning()) {
-      sleep(1);
-    }
-  }
-}
-
-void audioInit() {
-  xTaskCreatePinnedToCore(
-    audioTask,             /* Function to implement the task */
-    "audioplay",           /* Name of the task */
-    5000,                  /* Stack size in words */
-    NULL,                  /* Task input parameter */
-    2 | portPRIVILEGE_BIT, /* Priority of the task */
-    NULL,                  /* Task handle. */
-    1                      /* Core where the task should run */
-  );
-}
-audioMessage transmitReceive(audioMessage msg) {
-  xQueueSend(audioSetQueue, &msg, portMAX_DELAY);
-  if (xQueueReceive(audioGetQueue, &audioRxMessage, portMAX_DELAY) == pdPASS) {
-    if (msg.cmd != audioRxMessage.cmd) {
-      log_e("wrong reply from message queue");
-    }
-  }
-  return audioRxMessage;
-}
-
-void audioSetVolume(uint8_t vol) {
-  audioTxMessage.cmd = SET_VOLUME;
-  audioTxMessage.value = vol;
-  audioMessage RX = transmitReceive(audioTxMessage);
-}
-
-uint8_t audioGetVolume() {
-  audioTxMessage.cmd = GET_VOLUME;
-  audioMessage RX = transmitReceive(audioTxMessage);
-  return RX.ret;
-}
-
-bool audioConnecttohost(const char* host) {
-  audioTxMessage.cmd = CONNECTTOHOST;
-  audioTxMessage.txt = host;
-  audioMessage RX = transmitReceive(audioTxMessage);
-  return RX.ret;
-}
-
-bool audioConnecttoSD(const char* filename) {
-  audioTxMessage.cmd = CONNECTTOSD;
-  audioTxMessage.txt = filename;
-  audioMessage RX = transmitReceive(audioTxMessage);
-  return RX.ret;
-}
-void audio_info(const char* info) {
-  Serial.print("info        ");
-  Serial.println(info);
-}
-bool audioConnecttoSpeech(const char* speech, const char* language) {
-  audioTxMessage.cmd = CONNECTTOSPEECH;
-  audioTxMessage.txt = speech;
-  audioTxMessage.lang = language;
-  audioMessage RX = transmitReceive(audioTxMessage);
-  return RX.ret;
-}
-
-bool audiostatus() {
-  audioTxMessage.cmd = GET_AUDIOSTATUS;
-  audioMessage RX = transmitReceive(audioTxMessage);
-  return RX.ret;
-}
-
-//****************************************************************************************
-//                                  end audio portion                                          *
-//****************************************************************************************
-
-
-
-
-
-
 
 
 

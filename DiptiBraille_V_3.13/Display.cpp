@@ -5,7 +5,7 @@ void Display::setPins(int dataPin, int clockPin, int latchPin, int numOFcells) {
   Settings.STCP = latchPin;
   Settings.SHCP = clockPin;
   Settings.quantity = numOFcells;
-  Settings.state = DISPLAY_DISABLE;
+  Settings.state = DISPLAY_ENABLE;
   Settings.burning_coefficient = DEFAULT_BURNINGFACTOR;
   Settings.cooling_coefficient = DEFAULT_COOLINGFACTOR;
 }
@@ -65,6 +65,7 @@ void Display::pushToRegister(int base_10) {
 }
 
 void Display::clear() {
+  for(int i=0;i<60;i++)
   pushToRegister(RESET_CODE);
 }
 

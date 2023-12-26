@@ -51,7 +51,8 @@ enum : uint8_t {
   GET_FREQ,
   DISP_PRINT,
   DISP_DISABLE,
-  DISP_ENABLE
+  DISP_ENABLE,
+  DISP_CLEAR
 };
 
 QueueHandle_t dispSetQueue = NULL;
@@ -73,7 +74,8 @@ void dispTask(void* parameter) {
   struct dispMessage dispTxTaskMessage;
 
   disp.setPins(15, 16, 17, 1);
-  disp.initDisplay(14);
+  disp.initDisplay(30);
+  disp.clear();
 
   while (true) {
     //Serial.println("Hello Boss");
@@ -95,7 +97,11 @@ void dispTask(void* parameter) {
         dispTxTaskMessage.cmd = DISP_ENABLE;
         disp.enable();
         xQueueSend(dispGetQueue, &dispTxTaskMessage, portMAX_DELAY);
-      } else if (dispRxTaskMessage.cmd == DISP_DISABLE) {
+      }else if (dispRxTaskMessage.cmd == DISP_CLEAR) {
+        dispTxTaskMessage.cmd = DISP_CLEAR;
+        disp.clear();
+        xQueueSend(dispGetQueue, &dispTxTaskMessage, portMAX_DELAY);
+      }else if (dispRxTaskMessage.cmd == DISP_DISABLE) {
         dispTxTaskMessage.cmd = DISP_DISABLE;
         disp.disable();
         xQueueSend(dispGetQueue, &dispTxTaskMessage, portMAX_DELAY);
@@ -135,7 +141,10 @@ struct dispMessage transmitReceive(dispMessage msg) {
   }
   return dispRxMessage;
 }
-
+void dispClear(){
+  dispTxMessage.cmd = DISP_CLEAR;
+  dispMessage RX = transmitReceive(dispTxMessage); 
+}
 void dispSetFreq(uint8_t freq) {
   dispTxMessage.cmd = SET_FREQ;
   dispTxMessage.value = freq;

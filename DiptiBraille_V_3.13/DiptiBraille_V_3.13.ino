@@ -4,7 +4,7 @@
 #include <Keypad.h>
 #include <WiFi.h>
 #include "Audio.h"
-
+#include "esp_random.h"
 
 
 // SD CARD
@@ -111,7 +111,7 @@ language eng[] = {
 #define learn_reading_cnt 3
 #define audio_book_cnt 3
 #define calculator_cnt 4
-#define wireless_cnt 2
+#define wireless_cnt 4
 #define settings_cnt 5
 String set_data = "E000000", s;
 String dataa, buff, phone_number;
@@ -161,6 +161,8 @@ enum pagetype { root_menu,
                 division,
                 wifi,
                 bluetooth,
+                web_share,
+                remote_shell,
                 call,
                 message,
                 language,
@@ -179,7 +181,6 @@ void setup() {
   audioInit();
   (5000);
   displayInit();
-  dispDisable();
   
 
 
@@ -235,6 +236,8 @@ void loop() {
     //wireless
     case wifi: wifi_page(); break;
     case bluetooth: bluetooth_page(); break;
+    case web_share: web_share_page(); break;
+    case remote_shell: remote_shell_page(); break;
     //sim
     case call: call_page(); break;
     case message: message_page(); break;
@@ -953,8 +956,28 @@ void practice_alphabet_reading_page(void) {
     }
     keypress_detect();
     if (btn_cancel_isdown) {
+       dispClear();
+    dispDisable();
       c_page = practice_reading;
       return;
+    }
+    if(btn_accept_isdown)
+    {
+  char iv_str[2] = {0};
+  getRandomStr(iv_str, 1);
+  Serial.print("random char "); Serial.println(iv_str);
+  String random_kerneldata=userdata_to_kerneldata((String)iv_str);
+  random_kerneldata=random_kerneldata.substring(1);
+ if(disp_state){
+    dispEnable();
+    dispPrint(random_kerneldata);}
+    audioConnecttoSD("C/menu/eng/guess_alphabet.mp3");
+      String st = braille_input();
+      char ch = kerneldata_to_userdata(st);
+      if(((String)iv_str).compareTo((String)(ch))==0)
+audioConnecttoSD("C/sounds/correct.mp3");
+else audioConnecttoSD("C/sounds/wrong.mp3");
+ btn_accept_isdown=false;
     }
     while (millis() - loopstart < 25) {
       delay(2);
@@ -1140,6 +1163,7 @@ btn_accept_isdown=false;
       btn_up_isdown = false;
     }
     if (btn_cancel_isdown) {
+    dispClear();
     dispDisable();
       c_page = learn_reading;
       return;
@@ -1598,7 +1622,10 @@ void wireless_page(void) {
       Serial.println(F("wifi"));
       print_selected(2, sub_pos);
       Serial.println(F("bluetooth"));
-      Serial.println();
+       print_selected(3, sub_pos);
+      Serial.println(F("web_share"));
+       print_selected(4, sub_pos);
+      Serial.println(F("remote_shell"));
       Serial.println();
       print_divider();
       if (menu_selected(1, sub_pos)) {
@@ -1606,6 +1633,14 @@ void wireless_page(void) {
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
       {
         audioConnecttoSD("C/menu/eng/bluetooth.mp3");
+      }
+      else if (menu_selected(3, sub_pos))  //C/en/alp/A.mp3
+      {
+        audioConnecttoSD("C/menu/eng/web_share.mp3");
+      }
+      else if (menu_selected(4, sub_pos))  //C/en/alp/A.mp3
+      {
+        audioConnecttoSD("C/menu/eng/remote_shell.mp3");
       }
     }
     keypress_detect();
@@ -1637,6 +1672,8 @@ void wireless_page(void) {
       switch (sub_pos) {
         case 1: c_page = wifi; return;
         case 2: c_page = bluetooth; return;
+        case 3: c_page = web_share; return;
+        case 4: c_page = remote_shell; return;
       }
     }
     while (millis() - loopstart < 25) {
@@ -1782,8 +1819,140 @@ void bluetooth_page() {
     }
     if (btn_accept_isdown) {
       switch (sub_pos) {
-        case 1:webshareEnable();Serial.println(F("                                  *turned on bluetooth"));return;
-        case 2: webshareDisable();Serial.println(F("                                  *turned off bluetooth"));return;
+        case 1: Serial.println(F("                                  *turned on bluetooth"));return;
+        case 2: Serial.println(F("                                  *turned off bluetooth"));return;
+      }
+    }
+    while (millis() - loopstart < 25) {
+      delay(2);
+    }
+  }
+}
+//webshare section
+void web_share_page() {
+  btn_cancel_isdown = false;
+  btn_up_isdown = false;
+  btn_down_isdown = false;
+  btn_accept_isdown = false;
+  bool update_display = true;
+  uint32_t loopstart;
+  uint8_t sub_pos = 1;
+  while (true) {
+    loopstart = millis();
+    if (update_display) {
+      update_display = false;
+      clear_screen();
+      Serial.println(F("welcome to webshare section "));
+      print_divider();
+      print_selected(1, sub_pos);
+      Serial.println(F("webshare enable"));
+      print_selected(2, sub_pos);
+      Serial.println(F("webshare disable"));
+      Serial.println();
+      Serial.println();
+      print_divider();
+      if (menu_selected(1, sub_pos)) {
+        audioConnecttoSD("C/menu/eng/web_share_enable.mp3");
+      } else if (menu_selected(2, sub_pos)) 
+      {
+        audioConnecttoSD("C/menu/eng/web_share_disable.mp3");
+      }
+    }
+    keypress_detect();
+    if (btn_down_isdown) {
+      if (sub_pos == 2) {
+        sub_pos = 1;
+      } else {
+        sub_pos++;
+      }
+      update_display = true;
+      btn_down_isdown = false;
+    }
+    if (btn_up_isdown) {
+      if (sub_pos == 1) {
+        sub_pos = 2;
+      } else {
+        sub_pos--;
+      }
+      update_display = true;
+      btn_up_isdown = false;
+    }
+
+    if (btn_cancel_isdown) {
+      c_page = wireless;
+      return;
+      ;
+    }
+    if (btn_accept_isdown) {
+      switch (sub_pos) {
+        case 1:webshareEnable();Serial.println(F("                                  webshare enabled"));return;
+        case 2: webshareDisable();Serial.println(F("                                webshare disabled"));return;
+      }
+    }
+    while (millis() - loopstart < 25) {
+      delay(2);
+    }
+  }
+}
+//remote shell section
+void remote_shell_page() {
+  btn_cancel_isdown = false;
+  btn_up_isdown = false;
+  btn_down_isdown = false;
+  btn_accept_isdown = false;
+  bool update_display = true;
+  uint32_t loopstart;
+  uint8_t sub_pos = 1;
+  while (true) {
+    loopstart = millis();
+    if (update_display) {
+      update_display = false;
+      clear_screen();
+      Serial.println(F("welcome to remote shell section "));
+      print_divider();
+      print_selected(1, sub_pos);
+      Serial.println(F("remote shell enable"));
+      print_selected(2, sub_pos);
+      Serial.println(F("remote shell disable"));
+      Serial.println();
+      Serial.println();
+      print_divider();
+      if (menu_selected(1, sub_pos)) {
+        audioConnecttoSD("C/menu/eng/remote_shell_enable.mp3");
+      } else if (menu_selected(2, sub_pos))  
+      {
+        audioConnecttoSD("C/menu/eng/remote_shell_disable.mp3");
+      }
+    }
+    keypress_detect();
+    if (btn_down_isdown) {
+      if (sub_pos == 2) {
+        sub_pos = 1;
+      } else {
+        sub_pos++;
+      }
+      update_display = true;
+      btn_down_isdown = false;
+    }
+    if (btn_up_isdown) {
+      if (sub_pos == 1) {
+        sub_pos = 2;
+      } else {
+        sub_pos--;
+      }
+      update_display = true;
+      btn_up_isdown = false;
+    }
+
+    if (btn_cancel_isdown) {
+      c_page = wireless;
+      return;
+      ;
+    }
+    if (btn_accept_isdown) {
+      switch (sub_pos) {
+        case 1: Serial.println(F("                                 remote shell enabled"));return;
+        case 2: Serial.println(F("                               remote shell disabled"));return;
       }
     }
     while (millis() - loopstart < 25) {
@@ -2404,6 +2573,15 @@ String userdata_to_kerneldata(String data) {
   }
 }
 
+void getRandomStr(char* output, int len){
+    char* eligible_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for(int i = 0; i< len; i++){
+        uint8_t random_index = random(0, strlen(eligible_chars));
+        output[i] = eligible_chars[random_index];
+    }
+    //Serial.print("Random String: "); Serial.println(output);
+}
+
 void readFile(fs::FS& fs, const char* path) {
   Serial.printf("Reading file: %s\n", path);
 
@@ -2561,7 +2739,6 @@ void read_for_backspace(fs::FS& fs, const char* path) {
   Serial.println(s);
   file.close();
 }
-
 
 
 

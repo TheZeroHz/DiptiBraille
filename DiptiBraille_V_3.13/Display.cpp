@@ -55,8 +55,9 @@ int Display::binstrToint(String binary_string) {
 }
 
 void Display::pushToRegister(int base_10) {
+  if(base_10){
   Serial.print("Push:");
-  Serial.println(base_10);
+  Serial.println(base_10);}
   if (Settings.state == DISPLAY_ENABLE) {
     digitalWrite(Settings.STCP, LOW);
     shiftOut(Settings.DS, Settings.SHCP, LSBFIRST, base_10);
@@ -65,7 +66,7 @@ void Display::pushToRegister(int base_10) {
 }
 
 void Display::clear() {
-  for(int i=0;i<60;i++)
+  for(int i=0;i<30;i++)
   pushToRegister(RESET_CODE);
 }
 
@@ -78,6 +79,7 @@ void Display::writeDec(int DATA_DECIMAL) {
 }
 
 void Display::writeBinStr(String DATA_BINARY_STRING) {
+  clear();
   printData=DATA_BINARY_STRING;
 }
 

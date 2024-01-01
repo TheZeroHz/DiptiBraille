@@ -24,9 +24,9 @@
 
 ## 📝 Write
 
-- 📄 Doc Writing ![✅](https://via.placeholder.com/15/00FF00/000000?text=✅) 
-- 🖋️ Practice Writing ![🔄](https://via.placeholder.com/15/FFA500/000000?text=🔄) 
-- 📚 Learn Writing ![🔄](https://via.placeholder.com/15/FFA500/000000?text=🔄) 
+- 📄 Doc Writing ✅
+- 🖋️ Practice Writing 🔄
+- 📚 Learn Writing 🔄
 
 ### 📄 Doc Writing
 
@@ -42,9 +42,9 @@ Description or details about the "Learn Writing" sub-option.
 
 ## 📖 Read
 
-- 📜 Doc Reading ![✅](https://via.placeholder.com/15/00FF00/000000?text=✅) 
-- 📖 Practice Reading ![✅](https://via.placeholder.com/15/00FF00/000000?text=✅) 
-- 📘 Learn Reading ![✅](https://via.placeholder.com/15/00FF00/000000?text=✅) 
+- 📜 Doc Reading ✅
+- 📖 Practice Reading ✅
+- 📘 Learn Reading ✅
 
 ### 📜 Doc Reading
 
@@ -60,9 +60,9 @@ Description or details about the "Learn Reading" sub-option.
 
 ## 🎧 AudioBook
 
-- 📕 English Book ![✅](https://via.placeholder.com/15/00FF00/000000?text=✅) 
-- 📙 Bengali Book ![❌](https://via.placeholder.com/15/FF0000/000000?text=❌) 
-- 📗 Math Book ![❌](https://via.placeholder.com/15/FF0000/000000?text=❌) 
+- 📕 English Book ✅
+- 📙 Bengali Book ❌
+- 📗 Math Book ❌
 
 ### 📕 English Book
 

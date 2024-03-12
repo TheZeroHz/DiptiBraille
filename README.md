@@ -1,8 +1,7 @@
 # DiptiBraille
 > DiptiBraille is a specialized low-cost keyboard designed for the visually impaired, enabling them to input text using Braille, a tactile writing and reading system used by people with vision loss.
 
-## 🔍 Features
-
+## 🔮 Wishlist
 - [📝 **Write**](#-write)
   - [📄 Doc Writing](#-doc-writing)✅
   - [🖋️ Practice Writing](#-practice-writing)✅

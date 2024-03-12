@@ -1,5 +1,5 @@
 # DiptiBraille
-> DiptiBraille is a specialized low-cost keyboard designed for the visually impaired, enabling them to input text using Braille, a tactile writing and reading system used by people with vision loss.
+> DiptiBraille is a specialized **low-cost keyboard** designed **for the visually impaired**, enabling them to input text using Braille, a tactile writing and reading system used by people with vision loss. It features **📝 document writing** and **📖 reading capabilities**, allowing users to seamlessly create and access documents in various formats. Additionally, it supports **🎧 audio playback** with audiobooks, providing an inclusive reading experience. Users can also connect an **🔠 external Braille display** for enhanced tactile feedback. Its wireless connectivity options include **📡 WiFi** and **📶 WebShare** for easy data transfer and accessibility. The keyboard also offers essential communication features like **📱 call** and **💬 SMS functionalities**, ensuring seamless interaction for users. With its sleek design and intuitive interface, DiptiBraille provides a modern and user-friendly experience for visually impaired individuals.
 
 ## Printed Circuit Boards
 | Display Unit PCB Tracing          | Display Unit PCB Outlook          |

@@ -1,5 +1,11 @@
 # DiptiBraille
 > DiptiBraille is a specialized low-cost keyboard designed for the visually impaired, enabling them to input text using Braille, a tactile writing and reading system used by people with vision loss.
+
+## Printed Circuit Boards
+| Display Unit PCB Tracing          | Display Unit PCB Outlook          |
+|-----------------------------------|-----------------------------------|
+| ![pcb1trc](image/displaypcb.PNG)           | ![pcb1shw](image/displayunit.PNG)           |
+
 > ## 🛠️ Hardware List
 - ESP32 S3 N16R8 💻 x1
 - SIM800L GSM module 📶 x1
@@ -18,13 +24,8 @@
 - Capacitor ⚡ x2 (1uF,470uF)
 - Diode ⚡ x20
 - Push Button 🔘 x10
-## Printed Circuit Boards
-| Display Unit PCB Tracing          | Display Unit PCB Outlook          |
-|-----------------------------------|-----------------------------------|
-| ![pcb1trc](image/displaypcb.PNG)           | ![pcb1shw](image/displayunit.PNG)           |
-
-
-## 🔮 Wishlist
+  
+>## 🔮 Wishlist
 - [📝 **Write**](#-write)
   - [📄 Doc Writing](#-doc-writing)✅
   - [🖋️ Practice Writing](#-practice-writing)✅

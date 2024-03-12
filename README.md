@@ -18,6 +18,9 @@
 - Capacitor ⚡ x2 (1uF,470uF)
 - Diode ⚡ x20
 - Push Button 🔘 x10
+## Printed Circuit Boards
+-Display Unit
+![PCB Image](image/displayunit_pcb.PNG)
 
 ## 🔮 Wishlist
 - [📝 **Write**](#-write)

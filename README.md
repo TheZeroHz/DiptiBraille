@@ -1,5 +1,23 @@
 # DiptiBraille
 > DiptiBraille is a specialized low-cost keyboard designed for the visually impaired, enabling them to input text using Braille, a tactile writing and reading system used by people with vision loss.
+> ## 🛠️ Hardware List
+- ESP32 S3 N16R8 💻 x1
+- SIM800L GSM module 📶 x1
+- Cherry MX Mechanical keys ⌨️ x16
+- Mechanical Key Cap ⌨️ x16
+- I2S Amplifier 🔊 x1
+- Speaker 3W 🔊 x1
+- SD Card Module 📇 x1 (SPI)
+- SD Card 📇 x1 (Min:1GB Max:32GB)
+- Motor Driver - TB6612FNG ⚙️ x6
+- Shift Register - 74HC595 🔄 x2
+- 4.2v 2000mAh Li-on Battery 🔋 x3 (Configured in 3S)
+- BMS (Circuit Protector) ⚡ x1 (Min. 20A recommended)
+- 5V Constant Step Down BUCK Converter ⚡ x2
+- 12v Laptop Charger 🔌 x1
+- Capacitor ⚡ x2 (1uF,470uF)
+- Diode ⚡ x20
+- Push Button 🔘 x10
 
 ## 🔮 Wishlist
 - [📝 **Write**](#-write)

@@ -19,8 +19,10 @@
 - Diode ⚡ x20
 - Push Button 🔘 x10
 ## Printed Circuit Boards
--Display Unit
-![Wake Word Data Processing](image/displayunit.PNG)
+| Display Unit PCB Tracing          | Display Unit PCB Outlook          |
+|-----------------------------------|-----------------------------------|
+| ![pcb1trc](image/displaypcb.PNG)           | ![pcb1shw](image/displayunit.PNG)           |
+
 
 ## 🔮 Wishlist
 - [📝 **Write**](#-write)

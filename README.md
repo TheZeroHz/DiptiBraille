@@ -5,12 +5,9 @@ DiptiBraille is a specialized **low-cost keyboard** designed **for the visually 
 
 | Main Unit PCB Tracing | Main Unit PCB Outlook | Additional Info |
 |-------------------------|---------------------------|---------------------------------------------------------|
-| <img src="image/mainpcb.PNG" width="400" height="250"> | <img src="image/mainunit.PNG" width="400" height="250"> |  **Printing Website:** [JLCPCB](https://jlcpcb.com/) <br>**Build Time:** 2 days<br>**Min. Quantity:** 5pcs<br>**Price:** $18.10 for 5 pieces ($3.62 each)<br>**Base Material:** FR-4<br>**Layers:** 2<br> **Dimension:** 251.16 mm * 148.16 mm<br> **PCB Thickness:** 1.6 mm<br> **PCB Color:** Green<br>**Surface Finish:** HASL (with lead)<br>**Appearance Quality:** IPC Class 2 Standard<br>**Silkscreen:** White |
-
-
-| Display Unit PCB Tracing          | Display Unit PCB Outlook          |
-|-----------------------------------|-----------------------------------|
-| ![pcb1trc](image/displaypcb.PNG)           | ![pcb1shw](image/displayunit.PNG)           |
+| <img src="image/mainpcb.PNG" width="400" height="250"> | <img src="image/mainunit.PNG" width="400" height="250"> |  **Printing Website:** [JLCPCB](https://jlcpcb.com/) <br>**Build Time:** 2 days<br>**Min. Quantity:** 5pcs<br>**Price:** $18.10 ($3.62/pcs)<br>**Base Material:** FR-4<br>**Layers:** 2<br> **Dimension:** 251.16x148.16<br> **PCB Thickness:** 1.6 mm<br> **PCB Color:** Green<br>**Surface Finish:** HASL(with lead)<br>**Appearance Quality:** IPC 2<br>**Silkscreen:** White |
+| **Display Unit PCB Tracing** | **Display Unit PCB Outlook**  | **Additional Info** |
+| <img src="image/displaypcb.PNG" width="400" height="250"> | <img src="image/displayunit.PNG" width="400" height="250"> |Others:Same<br>**Price:** $7.40 ($1.48/pcs)<br> **Dimension:** 116.05 mm* 77.44 mm mm<br> **PCB Color:** Black |
 
 > ## 🛠️ Hardware List
 - ESP32 S3 N16R8 💻 x1

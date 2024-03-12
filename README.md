@@ -5,7 +5,7 @@ DiptiBraille is a specialized **low-cost keyboard** designed **for the visually 
 
 | Main Unit PCB Tracing          | Main Unit PCB Outlook          |
 |-----------------------------------|-----------------------------------|
-| ![pcb2trc](image/mainpcb.PNG)           | ![pcb2shw](image/mainunit.PNG)           |
+| ![Main Unit PCB Tracing](image/mainpcb.PNG){ width=30% } | ![Main Unit PCB Outlook](image/mainunit.PNG){ width=30% } |
 | Printing Website      | [JLCPCB](https://jlcpcb.com/)                          |
 | Build Time            | 2 days                           |
 | Quantity              | 5pcs                             |

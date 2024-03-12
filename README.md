@@ -3,9 +3,10 @@ DiptiBraille is a specialized **low-cost keyboard** designed **for the visually 
 
 ## Printed Circuit Boards
 
-| Main Unit PCB Tracing          | Main Unit PCB Outlook          | Additional Info |
-|-----------------------------------|-----------------------------------| -----------|
-| <img src="image/mainpcb.PNG" width="300" height="180"> |<img src="image/mainunit.PNG" width="300" height="180">| <ul>
+| Main Unit PCB Tracing | Main Unit PCB Outlook | Additional Info |
+|-------------------------|---------------------------|-----------|
+| <img src="image/mainpcb.PNG" width="300" height="180"> | <img src="image/mainunit.PNG" width="300" height="180"> | 
+| <ul style="width: 200px; overflow: scroll;">
   <li><strong>Printing Website:</strong> <a href="https://jlcpcb.com/">JLCPCB</a></li>
   <li><strong>Build Time:</strong> 2 days</li>
   <li><strong>Quantity:</strong> 5pcs</li>
@@ -18,8 +19,9 @@ DiptiBraille is a specialized **low-cost keyboard** designed **for the visually 
   <li><strong>Surface Finish:</strong> HASL (with lead)</li>
   <li><strong>Appearance Quality:</strong> IPC Class 2 Standard</li>
   <li><strong>Silkscreen:</strong> White</li>
-</ul>
- |
+</ul> |
+
+
 
 
 | Display Unit PCB Tracing          | Display Unit PCB Outlook          |

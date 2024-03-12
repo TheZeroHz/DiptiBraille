@@ -4,24 +4,8 @@ DiptiBraille is a specialized **low-cost keyboard** designed **for the visually 
 ## Printed Circuit Boards
 
 | Main Unit PCB Tracing | Main Unit PCB Outlook | Additional Info |
-|-------------------------|---------------------------|-----------|
-| <img src="image/mainpcb.PNG" width="300" height="180"> | <img src="image/mainunit.PNG" width="300" height="180"> | 
-| <ul style="width: 200px; overflow: scroll;">
-  <li><strong>Printing Website:</strong> <a href="https://jlcpcb.com/">JLCPCB</a></li>
-  <li><strong>Build Time:</strong> 2 days</li>
-  <li><strong>Quantity:</strong> 5pcs</li>
-  <li><strong>Price:</strong> $18.10 for 5 pieces ($3.62 each)</li>
-  <li><strong>Base Material:</strong> FR-4</li>
-  <li><strong>Layers:</strong> 2</li>
-  <li><strong>Dimension:</strong> 251.16 mm * 148.16 mm</li>
-  <li><strong>PCB Thickness:</strong> 1.6 mm</li>
-  <li><strong>PCB Color:</strong> Green</li>
-  <li><strong>Surface Finish:</strong> HASL (with lead)</li>
-  <li><strong>Appearance Quality:</strong> IPC Class 2 Standard</li>
-  <li><strong>Silkscreen:</strong> White</li>
-</ul> |
-
-
+|-------------------------|---------------------------|---------------------------------------------------------|
+| <img src="image/mainpcb.PNG" width="400" height="250"> | <img src="image/mainunit.PNG" width="400" height="250"> |  **Printing Website:** [JLCPCB](https://jlcpcb.com/) <br>**Build Time:** 2 days<br>**Min. Quantity:** 5pcs<br>**Price:** $18.10 for 5 pieces ($3.62 each)<br>**Base Material:** FR-4<br>**Layers:** 2<br> **Dimension:** 251.16 mm * 148.16 mm<br> **PCB Thickness:** 1.6 mm<br> **PCB Color:** Green<br>**Surface Finish:** HASL (with lead)<br>**Appearance Quality:** IPC Class 2 Standard<br>**Silkscreen:** White |
 
 
 | Display Unit PCB Tracing          | Display Unit PCB Outlook          |

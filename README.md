@@ -2,6 +2,24 @@
 DiptiBraille is a specialized **low-cost keyboard** designed **for the visually impaired**, enabling them to input text using Braille, a tactile writing and reading system used by people with vision loss. It features **📝 document writing** and **📖 reading capabilities**, allowing users to seamlessly create and access documents in various formats. Additionally, it supports **🎧 audio playback** with audiobooks, providing an inclusive reading experience. Users can also connect an **🔠 external Braille display** for enhanced tactile feedback. Its wireless connectivity options include **📡 WiFi** and **📶 WebShare** for easy data transfer and accessibility. The keyboard also offers essential communication features like **📱 call** and **💬 SMS functionalities**, ensuring seamless interaction for users. With its sleek design and intuitive interface, DiptiBraille provides a modern and user-friendly experience for visually impaired individuals.
 
 ## Printed Circuit Boards
+
+| Main Unit PCB Tracing          | Main Unit PCB Outlook          |
+|-----------------------------------|-----------------------------------|
+| ![pcb2trc](image/mainpcb.PNG)           | ![pcb2shw](image/mainunit.PNG)           |
+| Printing Website      | [JLCPCB](https://jlcpcb.com/)                          |
+| Build Time            | 2 days                           |
+| Quantity              | 5pcs                             |
+| Price                 | $18.10 for 5 pieces ($3.62 each)             |
+| Base Material         | FR-4                             |
+| Layers                | 2                                |
+| Dimension             | 251.16 mm * 148.16 mm           |
+| PCB Thickness         | 1.6 mm                           |
+| PCB Color             | Green                            |
+| Surface Finish        | HASL (with lead)                 |
+| Appearance Quality    | IPC Class 2 Standard             |
+| Silkscreen            | White                            |
+
+
 | Display Unit PCB Tracing          | Display Unit PCB Outlook          |
 |-----------------------------------|-----------------------------------|
 | ![pcb1trc](image/displaypcb.PNG)           | ![pcb1shw](image/displayunit.PNG)           |

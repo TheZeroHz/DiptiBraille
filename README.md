@@ -20,7 +20,7 @@
 - Push Button 🔘 x10
 ## Printed Circuit Boards
 -Display Unit
-![PCB Image](image/displayunit_pcb.PNG)
+![PCB Image](image/displayunit pcb.PNG)
 
 ## 🔮 Wishlist
 - [📝 **Write**](#-write)

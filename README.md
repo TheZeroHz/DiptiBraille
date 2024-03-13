@@ -60,7 +60,7 @@ Experience the sophistication of DiptiBraille's sleek design and intuitive inter
 
 - **Saifur Rahaman Dipu** (Chairman of BUBT) and **Faizur Rahaman** (Vice-Chancellor of BUBT): Their steadfast financial and moral support have been the cornerstone of [Project Name]'s journey, ensuring its realization and impact.
 
-# Libraries We have Used
+# External Libraries We have Used
 - [gpio_viewer](https://github.com/thelastoutpostworkshop/gpio_viewer) by [charlesgiguere](https://github.com/charlesgiguere)
 - [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S) by [schreibfaul1](https://github.com/schreibfaul1)
 - [ESPFMfGK](https://github.com/holgerlembke/ESPFMfGK) by [Holger Lembke](https://github.com/holgerlembke)

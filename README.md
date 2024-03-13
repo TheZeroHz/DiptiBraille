@@ -63,6 +63,13 @@ Experience the sophistication of DiptiBraille's sleek design and intuitive inter
 # Libraries We have Used
 - [gpio_viewer](https://github.com/thelastoutpostworkshop/gpio_viewer) by [charlesgiguere](https://github.com/charlesgiguere)
 - [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S) by [schreibfaul1](https://github.com/schreibfaul1)
+- [ESPFMfGK](https://github.com/holgerlembke/ESPFMfGK) by [Holger Lembke](https://github.com/holgerlembke)
+- [WebSerialLite](https://github.com/asjdf/WebSerialLite) by [杨成锴](https://github.com/asjdf)
+- [WifiManager](https://github.com/tzapu/WiFiManager) by [tzapu](https://github.com/tzapu)
+- [Keypad](https://github.com/Chris--A/Keypad) by [Christopher Andrews](https://github.com/Chris--A)
+- [ESPAsyncTCP](https://github.com/me-no-dev/ESPAsyncTCP) by [Me No Dev](https://github.com/me-no-dev)
+- [ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer) by [Me No Dev](https://github.com/me-no-dev)
+- [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard) by [T-vK](https://github.com/T-vK)
 
   We express our gratitude❤️ to these developers for their remarkable libraries.
 

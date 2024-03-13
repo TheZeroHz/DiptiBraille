@@ -4,6 +4,18 @@ DiptiBraille is a specialized low-cost keyboard designed for the visually impair
 Its wireless connectivity options include WiFi and WebShare for easy data transfer and accessibility. The keyboard also offers essential communication features like call and SMS functionalities, ensuring seamless interaction for users.
 
 With its sleek design and intuitive interface, DiptiBraille provides a modern and user-friendly experience for visually impaired individuals.
+># Operating System
+DiptiOS/1 is a pioneering operating system meticulously crafted to cater to the unique needs of braille users. Rooted in the robust framework of FreeRTOS, DiptiOS/1 sets a new standard for accessibility, seamlessly integrating with braille display hardware to deliver unparalleled functionality and ease of use.
+| OS Feature                      | Description                                                                                               |
+|------------------------------|-----------------------------------------------------------------------------------------------------------|
+| Optimized Braille Support   | Comprehensive support for braille display devices ensures smooth input and output.                        |
+| Intuitive Interface         | User-friendly interface tailored for braille users prioritizes ease of navigation.                          |
+| Real-Time Responsiveness    | Built on FreeRTOS for instant feedback and interaction.                                                    |
+| Customization Options       | Personalize braille experience with customizable settings.                                                  |
+| Seamless Connectivity       | Effortless data exchange with other devices and platforms.                                                  |
+| Enhanced Accessibility     | Enjoy voice feedback and screen magnification.                                                             |
+| Reliability and Stability  | Backed by FreeRTOS for consistent performance and uptime.                                                   |
+
 
 ># Hardware
 ### Printed Circuit Boards

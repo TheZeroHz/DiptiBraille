@@ -5,7 +5,7 @@ Wireless options include WiFi and WebShare for easy data transfer. Essential com
 
 With a sleek design and intuitive interface, DiptiBraille offers a modern, user-friendly experience for visually impaired individuals.
 ># Operating System
-DiptiOS/1 is a pioneering operating system meticulously crafted to cater to the unique needs of braille users. Rooted in the robust framework of FreeRTOS, DiptiOS/1 sets a new standard for accessibility, seamlessly integrating with braille display hardware to deliver unparalleled functionality and ease of use.
+DiptiOS/3 is a pioneering operating system meticulously crafted to cater to the unique needs of braille users. Rooted in the robust framework of FreeRTOS, DiptiOS/3 sets a new standard for accessibility, seamlessly integrating with braille display hardware to deliver unparalleled functionality and ease of use.
 | OS Feature                      | Description                                                                                               |
 |------------------------------|-----------------------------------------------------------------------------------------------------------|
 | Optimized Braille Support   | Comprehensive support for braille display devices ensures smooth input and output.                        |

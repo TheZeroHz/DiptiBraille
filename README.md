@@ -1,5 +1,9 @@
 ># DiptiBraille
-DiptiBraille is a specialized **low-cost keyboard** designed **for the visually impaired**, enabling them to input text using Braille, a tactile writing and reading system used by people with vision loss. It features **📝 document writing** and **📖 reading capabilities**, allowing users to seamlessly create and access documents in various formats. Additionally, it supports **🎧 audio playback** with audiobooks, providing an inclusive reading experience. Users can also connect an **🔠 external Braille display** for enhanced tactile feedback. Its wireless connectivity options include **📡 WiFi** and **📶 WebShare** for easy data transfer and accessibility. The keyboard also offers essential communication features like **📱 call** and **💬 SMS functionalities**, ensuring seamless interaction for users. With its sleek design and intuitive interface, DiptiBraille provides a modern and user-friendly experience for visually impaired individuals.
+DiptiBraille is a specialized low-cost keyboard designed for the visually impaired, enabling them to input text using Braille, a tactile writing and reading system used by people with vision loss. It features document writing and reading capabilities, allowing users to seamlessly create and access documents in various formats. Additionally, it supports audio playback with audiobooks, providing an inclusive reading experience. Users can also connect an external Braille display for enhanced tactile feedback.
+
+Its wireless connectivity options include WiFi and WebShare for easy data transfer and accessibility. The keyboard also offers essential communication features like call and SMS functionalities, ensuring seamless interaction for users.
+
+With its sleek design and intuitive interface, DiptiBraille provides a modern and user-friendly experience for visually impaired individuals.
 
 ## Printed Circuit Boards
 |**Base Material:** FR-4|**Layers:** 2|**Thickness:** 1.6 mm|**Surface:** HASL(with lead)|**Quality:** IPC 2|**Silkscreen:** White|
@@ -10,23 +14,19 @@ DiptiBraille is a specialized **low-cost keyboard** designed **for the visually 
 | <img src="image/mainunit.PNG" width="300" height="180"> |**Price:** $13<br> **Dim:** 251x148<br> **Color:** Green<br> | <img src="image/displayunit.PNG" width="300" height="180"> | **Price:** $7<br>**Dim:** 116x77<br> **Color:** Black |
 
 > ## 🛠️ Hardware List
-- ESP32 S3 N16R8 💻 x1
-- SIM800L GSM module 📶 x1
-- Cherry MX Mechanical keys ⌨️ x16
-- Mechanical Key Cap ⌨️ x16
-- I2S Amplifier 🔊 x1
-- Speaker 3W 🔊 x1
-- SD Card Module 📇 x1 (SPI)
-- SD Card 📇 x1 (Min:1GB Max:32GB)
-- Motor Driver - TB6612FNG ⚙️ x6
-- Shift Register - 74HC595 🔄 x2
-- 4.2v 2000mAh Li-on Battery 🔋 x3 (Configured in 3S)
-- BMS (Circuit Protector) ⚡ x1 (Min. 20A recommended)
-- 5V Constant Step Down BUCK Converter ⚡ x2
-- 12v Laptop Charger 🔌 x1
-- Capacitor ⚡ x2 (1uF,470uF)
-- Diode ⚡ x20
-- Push Button 🔘 x10
+| Component                           | Quantity | Component                           | Quantity |
+|-------------------------------------|----------|-------------------------------------|----------|
+| 💻 ESP32 S3 N16R8                   | x1       | 📶 SIM800L GSM module               | x1       |
+| ⌨️ Cherry MX Mechanical keys        | x16      | ⌨️ Mechanical Key Cap               | x16      |
+| 🔊 I2S Amplifier                    | x1       | 🔊 Speaker 3W                       | x1       |
+| 📇 SD Card Module                   | x1       | 📇 SD Card                          | x1       |
+| ⚙️ Motor Driver - TB6612FNG         | x6       | 🔄 Shift Register - 74HC595         | x2       |
+| 🔋 4.2v 2000mAh Li-on Battery       | x3       | ⚡ BMS (Circuit Protector)          | x1       |
+| ⚡ 5V Constant Step Down BUCK Converter | x2    | 🔌 12v Laptop Charger               | x1       |
+| ⚡ Capacitor                        | x2       | ⚡ Diode                            | x20      |
+| 🔘 Push Button                      | x10      |                                     |          |
+
+
   
 >## 🔮 Wishlist
 - [📝 **Write**](#-write)

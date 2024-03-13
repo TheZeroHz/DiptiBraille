@@ -1,9 +1,9 @@
 ># DiptiBraille
-DiptiBraille is a specialized low-cost keyboard designed for the visually impaired, enabling them to input text using Braille, a tactile writing and reading system used by people with vision loss. It features document writing and reading capabilities, allowing users to seamlessly create and access documents in various formats. Additionally, it supports audio playback with audiobooks, providing an inclusive reading experience. Users can also connect an external Braille display for enhanced tactile feedback.
+DiptiBraille is an affordable keyboard designed for the visually impaired, enabling text input using Braille. It supports document writing, reading, and audio playback for audiobooks. Users can connect an external Braille display for enhanced feedback.
 
-Its wireless connectivity options include WiFi and WebShare for easy data transfer and accessibility. The keyboard also offers essential communication features like call and SMS functionalities, ensuring seamless interaction for users.
+Wireless options include WiFi and WebShare for easy data transfer. Essential communication features like call and SMS are included for seamless interaction.
 
-With its sleek design and intuitive interface, DiptiBraille provides a modern and user-friendly experience for visually impaired individuals.
+With a sleek design and intuitive interface, DiptiBraille offers a modern, user-friendly experience for visually impaired individuals.
 ># Operating System
 DiptiOS/1 is a pioneering operating system meticulously crafted to cater to the unique needs of braille users. Rooted in the robust framework of FreeRTOS, DiptiOS/1 sets a new standard for accessibility, seamlessly integrating with braille display hardware to deliver unparalleled functionality and ease of use.
 | OS Feature                      | Description                                                                                               |

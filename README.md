@@ -5,7 +5,8 @@ Its wireless connectivity options include WiFi and WebShare for easy data transf
 
 With its sleek design and intuitive interface, DiptiBraille provides a modern and user-friendly experience for visually impaired individuals.
 
-## Printed Circuit Boards
+># Hardware
+### Printed Circuit Boards
 |**Base Material:** FR-4|**Layers:** 2|**Thickness:** 1.6 mm|**Surface:** HASL(with lead)|**Quality:** IPC 2|**Silkscreen:** White|
 |-----------------------|-------------|---------------------|----------------------------|------------------|---------------------|
 
@@ -13,7 +14,7 @@ With its sleek design and intuitive interface, DiptiBraille provides a modern an
 |---------------------------|---------------------------------------------------------|---------------------------|---------------------------------------------------------|
 | <img src="image/mainunit.PNG" width="300" height="180"> |**Price:** $13<br> **Dim:** 251x148<br> **Color:** Green<br> | <img src="image/displayunit.PNG" width="300" height="180"> | **Price:** $7<br>**Dim:** 116x77<br> **Color:** Black |
 
-> ## 🛠️ Hardware List
+### 🔧 Components List
 | Component                           | Quantity | Component                           | Quantity |
 |-------------------------------------|----------|-------------------------------------|----------|
 | 💻 ESP32 S3 N16R8                   | x1       | 📶 SIM800L GSM module               | x1       |

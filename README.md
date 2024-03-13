@@ -1,11 +1,24 @@
 ># DiptiBraille
-DiptiBraille is an affordable keyboard designed for the visually impaired, enabling text input using Braille. It supports document writing, reading, and audio playback for audiobooks. Users can connect an external Braille display for enhanced feedback.
+<p>DiptiBraille is an affordable keyboard designed for the visually impaired, enabling text input using Braille. It supports document writing, reading, and audio playback for audiobooks. Users can connect an external Braille display for enhanced feedback.Wireless options include WiFi and WebShare for easy data transfer. Essential communication features like call and SMS are included for seamless interaction.</p>
 
-Wireless options include WiFi and WebShare for easy data transfer. Essential communication features like call and SMS are included for seamless interaction.
-
-With a sleek design and intuitive interface, DiptiBraille offers a modern, user-friendly experience for visually impaired individuals.
 ># Operating System
 DiptiOS/3 is a pioneering operating system meticulously crafted to cater to the unique needs of braille users. Rooted in the robust framework of FreeRTOS, DiptiOS/3 sets a new standard for accessibility, seamlessly integrating with braille display hardware to deliver unparalleled functionality and ease of use.
+
+Experience the sophistication of DiptiBraille's sleek design and intuitive interface, offering both Demo and Pro versions. Unlock the full potential with the Pro Version, priced at $39, or explore its capabilities at no cost with the Demo Version.
+
+|✅ available|❌ not available|🔄 upcoming|🟡 partially available|
+|------------|-----------------|-----------|-----------------------|
+
+| Features           | Pro| Demo | Features           | Pro|Demo |  Features          | Pro|Demo |
+|-------------------------|-----|--------|--------------------|-----|--------|-------------------------|--------|------|
+| 📄 Doc Writing | ✅ |✅ |🖋️ Practice Writing | ✅|❌| 📚 Learn Writing| ✅ |🟡|
+|📜 Doc Reading | ✅|✅ | 📖 Practice Reading|  ✅ |❌|📘 Learn Reading| ✅ |🟡|
+|🎧 Audio Book |✅|✅ |🎵  Music Library  | 🔄 |❌   | 📞 Call|✅|🟡|
+|💬 SMS |✅|❌| 🧮 Calculator | ✅|🟡 |⌨️ BLE KeyBoard| 🔄 |❌|
+|<img src="https://static-00.iconduck.com/assets.00/bluetooth-icon-1365x2048-1dbwtuc9.png" alt="Bluetooth Icon" width="16" height="17">Bluetooth|✅| ❌ | <img src="https://dbservices.com/assets/article/2019/10/filemaker-cloud-1.png" alt="WebShare Icon" width="24" height="24"> WebShare| ✅ |❌| <img src="https://www.unifiedremote.com/remotes/raw/unifiedremote_remotes_master/main_command/icon_hires.png" alt="RemoteShell Icon" width="20" height="20"> RemoteShell|🔄| ❌ |
+|<img src="https://camo.githubusercontent.com/e80580d13d9769082fdd40894d586e4c8611da7998068ef2294ba35dd5975b15/68747470733a2f2f662e636c6f75642e6769746875622e636f6d2f6173736574732f313036373930372f313733313732342f37353661333561322d363330662d313165332d383732632d3936323166666364623830322e706e67" alt="WiFi Icon" width="24" height="24"> WiFi Manager| ✅|🟡 |⬇️ Download Manager |  ✅|❌ |📱 Phone Manager| ✅ |❌|
+|⚡Continuous Updates |  ✅ |🟡|
+
 | OS Feature                      | Description                                                                                               |
 |------------------------------|-----------------------------------------------------------------------------------------------------------|
 | Optimized Braille Support   | Comprehensive support for braille display devices ensures smooth input and output.                        |
@@ -40,34 +53,4 @@ DiptiOS/3 is a pioneering operating system meticulously crafted to cater to the 
 | 🔘 Push Button                      | x10      |                                     |          |
 
 
-  
->## 🔮 Wishlist
-- [📝 **Write**](#-write)
-  - [📄 Doc Writing](#-doc-writing)✅
-  - [🖋️ Practice Writing](#-practice-writing)✅
-  - [📚 Learn Writing](#-learn-writing)✅
-  
-- [📖 **Read**](#-read)
-  - [📜 Doc Reading](#-doc-reading)✅
-  - [📖 Practice Reading](#-practice-reading)✅
-  - [📘 Learn Reading](#-learn-reading)✅
-  
-- [🎧 **AudioBook**](#-audiobook)
-  - [📕 English Book](#-english-book) ✅
-  - [📙 Bengali Book](#-bengali-book) ❌
-  - [📗 Math Book](#-math-book) ❌
 
-- [🧮 **Calculator**](#-calculator)
-
-- [📡 **Wireless**](#-wireless)
-  - [<img src="https://camo.githubusercontent.com/e80580d13d9769082fdd40894d586e4c8611da7998068ef2294ba35dd5975b15/68747470733a2f2f662e636c6f75642e6769746875622e636f6d2f6173736574732f313036373930372f313733313732342f37353661333561322d363330662d313165332d383732632d3936323166666364623830322e706e67" alt="WiFi Icon" width="24" height="24"> WiFi](#-wifi) 🔄
-  - [<img src="https://static-00.iconduck.com/assets.00/bluetooth-icon-1365x2048-1dbwtuc9.png" alt="Bluetooth Icon" width="16" height="17">Bluetooth](#-bluetooth)❌
-  - <img src="https://dbservices.com/assets/article/2019/10/filemaker-cloud-1.png" alt="WebShare Icon" width="24" height="24"> [WebShare](#-webshare)✅ 
-  - <img src="https://www.unifiedremote.com/remotes/raw/unifiedremote_remotes_master/main_command/icon_hires.png" alt="RemoteShell Icon" width="20" height="20"> [RemoteShell](#-remoteshell)❌
-  - ⌨️ [BLE KeyBoard](#-ble-keyboard) 🔄
-
-- [📱 **Phone**](#-phone)
-  - 📞 Call ✅
-  - 💬 SMS 🔄
-
-- [⚙️ **Settings**](#-settings)

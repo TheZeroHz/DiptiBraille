@@ -4,7 +4,7 @@
 ># Operating System
 DiptiOS/3 is a pioneering operating system meticulously crafted to cater to the unique needs of braille users. Rooted in the robust framework of FreeRTOS, DiptiOS/3 sets a new standard for accessibility, seamlessly integrating with braille display hardware to deliver unparalleled functionality and ease of use.
 
-Experience the sophistication of DiptiBraille's sleek design and intuitive interface, offering both Demo and Pro versions. Unlock the full potential with the Pro Version, priced at $39, or explore its capabilities at no cost with the Demo Version.
+Experience the sophistication of DiptiBraille's sleek design and intuitive interface, offering both Demo and Pro versions. <b><i>Unlock the full potential with the Pro Version, priced at $39</i></b>, or explore its capabilities at no cost with the Demo Version.
 
 |✅ available|❌ not available|🔄 upcoming|🟡 partially available|
 |------------|-----------------|-----------|-----------------------|
@@ -18,7 +18,7 @@ Experience the sophistication of DiptiBraille's sleek design and intuitive inter
 |<img src="https://static-00.iconduck.com/assets.00/bluetooth-icon-1365x2048-1dbwtuc9.png" alt="Bluetooth Icon" width="16" height="17">Bluetooth|✅| ❌ | <img src="https://dbservices.com/assets/article/2019/10/filemaker-cloud-1.png" alt="WebShare Icon" width="24" height="24"> WebShare| ✅ |❌| <img src="https://www.unifiedremote.com/remotes/raw/unifiedremote_remotes_master/main_command/icon_hires.png" alt="RemoteShell Icon" width="20" height="20"> RemoteShell|🔄| ❌ |
 |<img src="https://camo.githubusercontent.com/e80580d13d9769082fdd40894d586e4c8611da7998068ef2294ba35dd5975b15/68747470733a2f2f662e636c6f75642e6769746875622e636f6d2f6173736574732f313036373930372f313733313732342f37353661333561322d363330662d313165332d383732632d3936323166666364623830322e706e67" alt="WiFi Icon" width="24" height="24"> WiFi Manager| ✅|🟡 |⬇️ Download Manager |  ✅|❌ |📱 Phone Manager| ✅ |❌|
 |⚡Continuous Updates |  ✅ |🟡|
-
+### DiptiOS/3 Ensures
 | OS Feature                      | Description                                                                                               |
 |------------------------------|-----------------------------------------------------------------------------------------------------------|
 | Optimized Braille Support   | Comprehensive support for braille display devices ensures smooth input and output.                        |
@@ -51,6 +51,18 @@ Experience the sophistication of DiptiBraille's sleek design and intuitive inter
 | ⚡ 5V Constant Step Down BUCK Converter | x2    | 🔌 12v Laptop Charger               | x1       |
 | ⚡ Capacitor                        | x2       | ⚡ Diode                            | x20      |
 | 🔘 Push Button                      | x10      |                                     |          |
+# Acknowledgements
+- **Rakib Hasan:** The initiator DiptiBraille,expertise in hardware design, development of crucial libraries, handling multicore aspects, and algorithm design has laid the foundation for the project's success.
 
+- **Sudipa Saha:** Sudipa's significant contributions in designing crucial algorithms, along with her unwavering support and proficiency in merging code, have played a pivotal role in shaping the project's development and direction.
 
+- **Mahareen Afroj:** Mahareen's instrumental role in communication and outreach efforts has been invaluable, fostering connections critical to the project's outreach.
+
+- **Saifur Rahaman Dipu** (Chairman of BUBT) and **Faizur Rahaman** (Vice-Chancellor of BUBT): Their steadfast financial and moral support have been the cornerstone of [Project Name]'s journey, ensuring its realization and impact.
+
+# Libraries We have Used
+- [gpio_viewer](https://github.com/thelastoutpostworkshop/gpio_viewer) by [charlesgiguere](https://github.com/charlesgiguere)
+- [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S) by [schreibfaul1](https://github.com/schreibfaul1)
+
+  We express our gratitude❤️ to these developers for their remarkable libraries.
 

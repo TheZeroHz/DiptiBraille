@@ -51,12 +51,6 @@ Experience the sophistication of DiptiBraille's sleek design and intuitive inter
 | ⚡ 5V Constant Step Down BUCK Converter | x2    | 🔌 12v Laptop Charger               | x1       |
 | ⚡ Capacitor                        | x2       | ⚡ Diode                            | x20      |
 | 🔘 Push Button                      | x10      |                                     |          |
-# Acknowledgements
-- [Rakib Hasan](https://github.com/TheZeroHz): The initiator DiptiBraille,expertise in hardware design, development of crucial libraries, handling multicore aspects, and algorithm design has laid the foundation for the project's success.
-
-- [Sudipa Saha](https://github.com/Sudipa45): Sudipa's significant contributions in designing crucial algorithms, along with her unwavering support and proficiency in merging code, have played a pivotal role in shaping the project's development and direction.
-
-- [BUBT](https://www.bubt.edu.bd/): The Bangladesh University of Business and Technology (BUBT) has provided essential financial support through its Student Fund, enabling the realization of Dipti Braille. This support underscores BUBT's commitment to fostering innovation and accessibility in education and technology.We extend our sincere gratitude to BUBT
 
 # External Libraries We have Used
 - [gpio_viewer](https://github.com/thelastoutpostworkshop/gpio_viewer) by [charlesgiguere](https://github.com/charlesgiguere)

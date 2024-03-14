@@ -4,7 +4,7 @@
 ># Operating System
 [DiptiOS 3](https://drive.google.com/drive/folders/1-XRWvRZWpASW5opDc2k0D57xcp3DkUi7?usp=sharing) is a pioneering operating system meticulously crafted to cater to the unique needs of braille users. Rooted in the robust framework of [FreeRTOS](https://www.freertos.org/RTOS.html), DiptiOS/3 sets a new standard for accessibility, seamlessly integrating with braille display hardware to deliver unparalleled functionality and ease of use.
 
-Experience the sophistication of DiptiBraille's sleek design and intuitive interface, offering both Demo and Pro versions. <b><i>Unlock the full potential with the Pro Version, priced at $39</i></b>, or explore its capabilities at no cost with the Demo Version.
+Experience the sophistication of DiptiBraille's sleek design and intuitive interface, offering both Demo and Pro versions. <b><i>Unlock the full potential with the Pro Version, priced at $50</i></b>, or explore its capabilities at no cost with the Demo Version.
 
 |✅ available|❌ not available|🔄 upcoming|🟡 partially available|
 |------------|-----------------|-----------|-----------------------|

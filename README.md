@@ -1,5 +1,5 @@
 > <img src="image/_dipti_logo_.png" width="200" height="100"> 
-<img src="image/_diptiV2_layout1_.png" width="500" height="350"><img src="image/_diptiV2_layout3_.png" width="500" height="350">
+<img src="image/_diptiV2_layout1_.png" width="300" height="230"><img src="image/_diptiV2_layout3_.png" width="300" height="230">
 <p>DiptiBraille is an affordable keyboard designed for the visually impaired, enabling text input using Braille. It supports document writing, reading, and audio playback for audiobooks. Users can connect an external Braille display for enhanced feedback.Wireless options include WiFi and WebShare for easy data transfer. Essential communication features like call and SMS are included for seamless interaction.</p>
 
 ># Operating System

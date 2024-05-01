@@ -27,7 +27,7 @@ Experience the sophistication of DiptiBraille's sleek design and intuitive inter
 | Real-Time Responsiveness    | Built on FreeRTOS for instant feedback and interaction.                                                    |
 | Customization Options       | Personalize braille experience with customizable settings.                                                  |
 | Seamless Connectivity       | Effortless data exchange with other devices and platforms.                                                  |
-| Enhanced Accessibility     | Enjoy voice feedback and screen magnification.                                                             |
+| Enhanced Accessibility     | Enjoy voice feedback and enhanced audio.                                                             |
 | Reliability and Stability  | Backed by FreeRTOS for consistent performance and uptime.                                                   |
 
 

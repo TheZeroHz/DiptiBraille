@@ -31,14 +31,14 @@ Experience the sophistication of DiptiBraille's sleek design and intuitive inter
 | Reliability and Stability  | Backed by FreeRTOS for consistent performance and uptime.                                                   |
 
 
-># Hardware
+># Open Source Hardware
 ### Printed Circuit Boards
 |**Base Material:** FR-4|**Layers:** 2|**Thickness:** 1.6 mm|**Surface:** HASL(with lead)|**Quality:** IPC 2|**Silkscreen:** White|
 |-----------------------|-------------|---------------------|----------------------------|------------------|---------------------|
 
 | Main Unit PCB Outlook | Additional Info | **Display Unit PCB Outlook**  | **Additional Info** |
 |---------------------------|---------------------------------------------------------|---------------------------|---------------------------------------------------------|
-| <img src="image/mainunit.PNG" width="300" height="180"> |**Price:** $13<br> **Dim:** 251x148<br> **Color:** Green<br> | <img src="image/displayunit.PNG" width="300" height="180"> | **Price:** $7<br>**Dim:** 116x77<br> **Color:** Black |
+| <img src="image/mainunit.PNG" width="300" height="180"> |<br> **Dim:** 251x148<br> **Color:** Green<br> | <img src="image/displayunit.PNG" width="300" height="180"> |<br>**Dim:** 116x77<br> **Color:** Black |
 
 ### 🔧 Components List
 | Component                           | Quantity | Component                           | Quantity |

@@ -11,12 +11,39 @@ void addFileSystems(void) {
     Serial.println(F("FFat File System not inited."));
   }
   /**/
-  const byte SS = 10;  // D8
-  if (SD.begin(SS)) {
+
+  // Initialize SD card and gather information
+  sdMounted = SD.begin(CS);
+
+
+  if (sdMounted) {
+    sdTotalSize = SD.totalBytes();
+    sdUsedSpace = SD.usedBytes();
+
+    sdcard_type_t cardType = SD.cardType();
+    switch(cardType) {
+      case CARD_NONE:
+        sdType = "None";
+        break;
+      case CARD_MMC:
+        sdType = "MMC";
+        break;
+      case CARD_SD:
+        sdType = "SDSC";
+        break;
+      case CARD_SDHC:
+        sdType = "SDHC";
+        break;
+      case CARD_UNKNOWN:
+      default:
+        sdType = "Unknown";
+        break;
+    }
     if (!filemgr.AddFS(SD, "SD-Card", false)) {
       Serial.println(F("Adding SD failed."));
     }
-  } else {
+  }
+else {
     Serial.println(F("SD File System not inited."));
   }
   /**/

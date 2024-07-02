@@ -51,17 +51,22 @@ void performUpdate(Stream &updateSource, size_t updateSize) {
     if (written == updateSize) {
       Serial.println("Written : " + String(written) + " successfully");
       if (Update.end()) {
+        audioConnecttoSpeech("OTA done!","en");
         Serial.println("OTA done!");
         if (Update.isFinished()) {
+          audioConnecttoSpeech("Update successfully completed. Rebooting.","en");
           Serial.println("Update successfully completed. Rebooting.");
         } else {
+          audioConnecttoSpeech("Update not finished? Something went wrong!","en");
           Serial.println("Update not finished? Something went wrong!");
         }
       } else {
+        audioConnecttoSpeech("Error Occurred","en");
         Serial.println("Error Occurred. Error #: " + String(Update.getError()));
       }
     }
   } else {
+    audioConnecttoSpeech("Not enough space to begin OTA","en");
     Serial.println("Not enough space to begin OTA");
   }
 }
@@ -81,16 +86,19 @@ void updateFromFS(fs::FS &fs,String loc) {
     size_t updateSize = updateBin.size();
 
     if (updateSize > 0) {
-      Serial.println("Try to start update");
+      audioConnecttoSpeech("Trying to start update","en");
+      Serial.println("Trying to start update");
       performUpdate(updateBin, updateSize);
     } else {
+      audioConnecttoSpeech("Error, file is empty","en");
       Serial.println("Error, file is empty");
     }
 
     updateBin.close();
 
-    // whe finished remove the binary from sd card to indicate end of the process
+    // when finished remove the binary from sd card to indicate end of the process
   } else {
+    audioConnecttoSpeech("Could not load update.bin from sd root","en");
     Serial.println("Could not load update.bin from sd root");
   }
 }

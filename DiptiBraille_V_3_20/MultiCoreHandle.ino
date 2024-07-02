@@ -15,7 +15,9 @@
 
 #define app_core 1
 #define utility_core 0
+
 #define display_stack 2000
+#define vibrator_stack 2000
 #define audio_stack 5000
 #define webshare_stack 10000
 #define remoteshell_stack 5000
@@ -28,7 +30,7 @@ TaskHandle_t display_handle = NULL;
 TaskHandle_t audio_handle = NULL;
 TaskHandle_t webshare_handle = NULL;
 TaskHandle_t downloader_handle =NULL;
-
+TaskHandle_t vibrator_handle = NULL;
 
 
 Display disp;
@@ -77,8 +79,8 @@ void dispTask(void* parameter) {
   struct dispMessage dispRxTaskMessage;
   struct dispMessage dispTxTaskMessage;
 
-  disp.setPins(15, 16, 17, 1);
-  disp.initDisplay(40);
+  disp.setPins(16, 15, 7, 1);
+  disp.initDisplay(30);
   disp.clear();
 
   while (true) {
@@ -220,7 +222,6 @@ void audioTask(void* parameter) {
   struct audioMessage audioTxTaskMessage;
 
   audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
-  audio.setVolume(15);  // 0...21
 
   while (true) {
     if (xQueueReceive(audioSetQueue, &audioRxTaskMessage, 1) == pdPASS) {
@@ -235,7 +236,7 @@ void audioTask(void* parameter) {
         xQueueSend(audioGetQueue, &audioTxTaskMessage, portMAX_DELAY);
       } else if (audioRxTaskMessage.cmd == CONNECTTOSD) {
         audioTxTaskMessage.cmd = CONNECTTOSD;
-        audioTxTaskMessage.ret = audio.connecttoSD(audioRxTaskMessage.txt);
+        audioTxTaskMessage.ret = audio.connecttoFS(SD,audioRxTaskMessage.txt);
         xQueueSend(audioGetQueue, &audioTxTaskMessage, portMAX_DELAY);
       } else if (audioRxTaskMessage.cmd == GET_VOLUME) {
         audioTxTaskMessage.cmd = GET_VOLUME;

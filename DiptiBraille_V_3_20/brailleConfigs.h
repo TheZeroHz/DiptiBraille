@@ -1,18 +1,12 @@
 #ifndef BRAILLECONFIGS_H
 #define BRAILLECONFIGS_H
 #include<Arduino.h>
-#include "FS.h"
-#include "SD.h"
-#include "SPI.h"
-#include <Keypad.h>
-#include <WiFi.h>
-#include "Audio.h"
-#include "esp_random.h"
-#include <Update.h>
-#include "AudioTools.h"
-#include "BleKeyboard.h"
 bool KeyBoard_Connected=false;
 BleKeyboard bleKeyboard;
+
+#define HAS_VIBRATOR
+#define HAS_EXTERNAL_DISPLAY
+#define HAS_MONITOR
 
 #define DEBUG_AUDIO false
 #define DEBUG_WEBSHARE true
@@ -23,16 +17,19 @@ String latest_update_loc="/C/firmware/current/update.bin";
 String failsafe_update_loc="/C/firmware/failsafe/update.bin";
 String previous_update_loc="/C/firmware/previous/update.bin";
 
-#define BUTTON_PIN_BITMASK 0x100 // 2^8 in hex
+#define boot_sound "C/sounds/bootup.mp3"
+#define shutdown_sound "C/sounds/shutdown.mp3"
+
+#define BUTTON_PIN_BITMASK 0x100 // 2^8 in hex  Pin 8 OK PCB
 // SD CARD
-#define SD_CS 10
-#define SPI_MOSI 11
-#define SPI_MISO 13
-#define SPI_SCK 12
+#define SD_CS 10  //OK PCB
+#define SPI_MOSI 11 //OK PCB
+#define SPI_MISO 13 //OK PCB
+#define SPI_SCK 12  //OK PCB
 // I2S Amplifier
-#define I2S_DOUT 6
-#define I2S_BCLK 5
-#define I2S_LRC 4
+#define I2S_DOUT 6 //Some times labeled as DIN OK PCB
+#define I2S_BCLK 5 // OK PCB
+#define I2S_LRC 4 // OK PCB
 
 void print_wakeup_reason(){
   esp_sleep_wakeup_cause_t wakeup_reason;

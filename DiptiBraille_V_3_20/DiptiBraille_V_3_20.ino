@@ -1,16 +1,45 @@
+#include "ExternalLibrary.h"
 #include "brailleConfigs.h"
+#include <TFT_eSPI.h>
+#include "TFT_GUI.h"
+TFT_eSPI tft = TFT_eSPI();  // Create an instance of the TFT_eSPI library
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 240
+#define ITEM_HEIGHT 40
+#define ANIMATION_DURATION 500
 
-bool disp_state=true;
-bool voice_state=true;
+TFT_GUI menu(tft, SCREEN_WIDTH, SCREEN_HEIGHT, ITEM_HEIGHT, ANIMATION_DURATION);
 
+String rootmenuItems[] = {"Write", "Read", "Audio Book", "Calculator", "Wireless", "Sim", "Settings"};
+String writemenuItems[] = {"Docs", "Practice", "Learn"};
+
+String settingmenuItems[]={"Language","Voice output","Braille output","Touch pen","Update firmware","Factory Reset","Power"};
+  String languagemenuItems[]={"English","Bengali"};
+  String voicemenuItems[]={"Enable","Disable"};
+  String powermenuItems[]={"Power Off","Restart"};
+
+  const byte CS = 10;
+  uint64_t sdTotalSize = 0;
+  uint64_t sdUsedSpace = 0;
+  const char* sdType = "Unknown";
+  bool sdMounted= false;
+
+
+bool disp_state = true;
+bool voice_state = true;
+bool control_key_hold = false;
+bool space_key_hold =false;
+uint8_t volume=10;
+int brightness=100;
 const byte ROWS = 4;
 const byte COLS = 4;
 char hexaKeys[ROWS][COLS] = {
-  { '1', '4', 's', 'e' },
-  { '2', '5', 'n', 'u' },
-  { '3', '6', 'C', 'c' },
-  { '*', 'b', '#', 'd' }
+  { '1', '2', '3', 'c' },
+  { 'e', '6', '5', '4' },
+  { 'n', '*', '#', 'b' },
+  { 'd', 'u', 's', 'C' }
 };
+
 byte rowPins[ROWS] = { 47, 48, 45, 38 };
 byte colPins[COLS] = { 39, 40, 41, 42 };
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
@@ -24,12 +53,12 @@ struct language {
 language eng[] = {
   { ' ', "E000000" },
   { '!', "E011101" },
-  { '\"',"E000010" },
+  { '\"', "E000010" },
   { '#', "E001111" },
   { '$', "E110101" },
   { '%', "E100101" },
   { '&', "E111101" },
-  { '\'',"E001000" },
+  { '\'', "E001000" },
   { '(', "E111011" },
   { ')', "E011111" },
   { '*', "E100001" },
@@ -81,7 +110,7 @@ language eng[] = {
   { 'Y', "E101111" },
   { 'Z', "E101011" },
   { '[', "E010101" },
-  { '\\',"E110011" },
+  { '\\', "E110011" },
   { ']', "E110111" },
   { '^', "E000110" },
   { '_', "E000111" }
@@ -99,7 +128,7 @@ language eng[] = {
 #define settings_cnt 7
 String set_data = "E000000", s;
 String dataa, buff, phone_number;
-const char* ssid = "rakib";
+const char* ssid = "Rakib";
 const char* password = "rakib@2023";
 bool capslock = false;
 bool numlock = false;
@@ -108,8 +137,7 @@ bool btn_up_isdown = false;
 bool btn_down_isdown = false;
 bool btn_accept_isdown = false;
 bool btn_backspace_isdown = false;
-bool ctrl= false;
-
+bool ctrl = false;
 enum pagetype { root_menu,
                 write_f,
                 read_f,
@@ -155,11 +183,16 @@ enum pagetype { root_menu,
                 touch_pen,
                 power,
                 update_firmware,
-                init_failsafe_protocol};
+                init_failsafe_protocol };
 enum pagetype c_page = root_menu;
+
 void setup() {
   Serial.begin(115200);
-  esp_sleep_enable_ext0_wakeup(GPIO_NUM_8,1);
+  tft.init();
+  tft.setRotation(2);
+  
+
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_8, 1);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print("=");
@@ -168,19 +201,19 @@ void setup() {
   bleKeyboard.begin();
   webshareInit();
   audioInit();
-  (5000);
   displayInit();
-  
-
-
+  audioSetVolume(4);
   log_i("current display frequency is: %d", dispGetFreq());
   log_i("current volume is: %d", audioGetVolume());
-
+  audioConnecttoSD(boot_sound);
+  menu.bootUP();
+  menu.displayHardwareInfo(sdMounted, sdTotalSize, sdUsedSpace, sdType);
+  delay(5000);
 }
 
 void loop() {
   switch (c_page) {
-    KeyBoard_Connected=bleKeyboard.isConnected();
+    KeyBoard_Connected = bleKeyboard.isConnected();
     case root_menu: root_menu_page(); break;
     case write_f: write_f_page(); break;
     case read_f: read_f_page(); break;
@@ -249,11 +282,15 @@ void root_menu_page(void) {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+  uint8_t prev_sub_pos = 1;  // Store previous selected menu item
+  int itemCount = sizeof(rootmenuItems) / sizeof(rootmenuItems[0]);
+  menu.setItems(rootmenuItems, itemCount);
+
   while (true) {
     loopstart = millis();
     if (update_display) {
       update_display = false;
-      clear_screen();   
+      clear_screen();
       Serial.print(F("           welcome to root menu  Version-"));
       Serial.print(braille_version);
       Serial.println(version_type);
@@ -276,18 +313,17 @@ void root_menu_page(void) {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos-1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/write.mp3");
-      } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
-      {
+      } else if (menu_selected(2, sub_pos)) {
         audioConnecttoSD("C/menu/eng/read.mp3");
       } else if (menu_selected(3, sub_pos)) {
         audioConnecttoSD("C/menu/eng/audio_book.mp3");
       }
       if (menu_selected(4, sub_pos)) {
         audioConnecttoSD("C/menu/eng/calculator.mp3");
-      } else if (menu_selected(5, sub_pos))  //C/en/alp/A.mp3
-      {
+      } else if (menu_selected(5, sub_pos)) {
         audioConnecttoSD("C/menu/eng/wireless.mp3");
       } else if (menu_selected(6, sub_pos)) {
         audioConnecttoSD("C/menu/eng/sim.mp3");
@@ -297,6 +333,7 @@ void root_menu_page(void) {
     }
     keypress_detect();
     if (btn_down_isdown) {
+      prev_sub_pos = sub_pos;  // Store previous selection
       if (sub_pos == root_menu_cnt) {
         sub_pos = 1;
       } else {
@@ -306,6 +343,7 @@ void root_menu_page(void) {
       btn_down_isdown = false;
     }
     if (btn_up_isdown) {
+      prev_sub_pos = sub_pos;  // Store previous selection
       if (sub_pos == 1) {
         sub_pos = root_menu_cnt;
       } else {
@@ -316,6 +354,7 @@ void root_menu_page(void) {
     }
 
     if (btn_accept_isdown) {
+      prev_sub_pos = sub_pos;  // Store previous selection before switching page
       switch (sub_pos) {
         case 1: c_page = write_f; return;
         case 2: c_page = read_f; return;
@@ -333,6 +372,7 @@ void root_menu_page(void) {
   }
 }
 
+
 //write section
 void write_f_page(void) {
   btn_cancel_isdown = false;
@@ -342,6 +382,8 @@ void write_f_page(void) {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+  int itemCount = sizeof(writemenuItems) / sizeof(writemenuItems[0]);
+  menu.setItems(writemenuItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -358,6 +400,7 @@ void write_f_page(void) {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos-1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/document_writing.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -439,7 +482,7 @@ void doc_writing_page(void) {
         }
         appendFile(SD, "/text.txt", (String)(udata));
       }
-        btn_accept_isdown = false;
+      btn_accept_isdown = false;
     }
     if (btn_backspace_isdown) {
       read_for_backspace(SD, "/text.txt");
@@ -551,25 +594,25 @@ void practice_alphabet_writing_page(void) {
       c_page = practice_writing;
       return;
     }
-    if(btn_accept_isdown)
-    {
-  char iv_str[2] = {0};
-  getRandomStr(iv_str, 1,"alphabet");
-  Serial.print("random char "); Serial.println(iv_str);
-  String ch_name = "C/en/alp/" + (String)iv_str + ".mp3";
-    ch = ch_name.c_str();
-    audioConnecttoSD("C/menu/eng/write.mp3");
-    code_112:
-    if(audiostatus()){
-goto code_112;
-    }
-    audioConnecttoSD(ch);
+    if (btn_accept_isdown) {
+      char iv_str[2] = { 0 };
+      getRandomStr(iv_str, 1, "alphabet");
+      Serial.print("random char ");
+      Serial.println(iv_str);
+      String ch_name = "C/en/alp/" + (String)iv_str + ".mp3";
+      ch = ch_name.c_str();
+      audioConnecttoSD("C/menu/eng/write.mp3");
+code_112:
+      if (audiostatus()) {
+        goto code_112;
+      }
+      audioConnecttoSD(ch);
       String st = braille_input();
       char ch = kerneldata_to_userdata(st);
-      if(((String)iv_str).compareTo((String)(ch))==0)
-audioConnecttoSD("C/sounds/correct.mp3");
-else audioConnecttoSD("C/sounds/wrong.mp3");
- btn_accept_isdown=false;
+      if (((String)iv_str).compareTo((String)(ch)) == 0)
+        audioConnecttoSD("C/sounds/correct.mp3");
+      else audioConnecttoSD("C/sounds/wrong.mp3");
+      btn_accept_isdown = false;
     }
     while (millis() - loopstart < 25) {
       delay(2);
@@ -578,8 +621,8 @@ else audioConnecttoSD("C/sounds/wrong.mp3");
 }
 //practice number writing
 void practice_number_writing_page(void) {
-const char* ch;
- btn_cancel_isdown = false;
+  const char* ch;
+  btn_cancel_isdown = false;
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
@@ -599,25 +642,25 @@ const char* ch;
       c_page = practice_writing;
       return;
     }
-    if(btn_accept_isdown)
-    {
-  char iv_str[2] = {0};
-  getRandomStr(iv_str, 1,"number");
-  Serial.print("random char "); Serial.println(iv_str);
-  String ch_name = "C/en/num/" + (String)iv_str + ".mp3";
-    ch = ch_name.c_str();
-    audioConnecttoSD("C/menu/eng/write.mp3");
-    code_112:
-    if(audiostatus()){
-goto code_112;
-    }
-    audioConnecttoSD(ch);
+    if (btn_accept_isdown) {
+      char iv_str[2] = { 0 };
+      getRandomStr(iv_str, 1, "number");
+      Serial.print("random char ");
+      Serial.println(iv_str);
+      String ch_name = "C/en/num/" + (String)iv_str + ".mp3";
+      ch = ch_name.c_str();
+      audioConnecttoSD("C/menu/eng/write.mp3");
+code_112:
+      if (audiostatus()) {
+        goto code_112;
+      }
+      audioConnecttoSD(ch);
       String st = braille_input();
       char ch = kerneldata_to_userdata(st);
-      if(((String)iv_str).compareTo((String)(ch))==0)
-audioConnecttoSD("C/sounds/correct.mp3");
-else audioConnecttoSD("C/sounds/wrong.mp3");
- btn_accept_isdown=false;
+      if (((String)iv_str).compareTo((String)(ch)) == 0)
+        audioConnecttoSD("C/sounds/correct.mp3");
+      else audioConnecttoSD("C/sounds/wrong.mp3");
+      btn_accept_isdown = false;
     }
     while (millis() - loopstart < 25) {
       delay(2);
@@ -647,25 +690,25 @@ void practice_specialcharecter_writing_page(void) {
       c_page = practice_writing;
       return;
     }
-    if(btn_accept_isdown)
-    {
-  char iv_str[2] = {0};
-  getRandomStr(iv_str, 1,"special");
-  Serial.print("random char "); Serial.println(iv_str);
-  String ch_name = "C/en/special_char/" + (String)iv_str + ".mp3";
-    ch = ch_name.c_str();
-    audioConnecttoSD("C/menu/eng/write.mp3");
-    code_112:
-    if(audiostatus()){
-goto code_112;
-    }
-    audioConnecttoSD(ch);
+    if (btn_accept_isdown) {
+      char iv_str[2] = { 0 };
+      getRandomStr(iv_str, 1, "special");
+      Serial.print("random char ");
+      Serial.println(iv_str);
+      String ch_name = "C/en/special_char/" + (String)iv_str + ".mp3";
+      ch = ch_name.c_str();
+      audioConnecttoSD("C/menu/eng/write.mp3");
+code_112:
+      if (audiostatus()) {
+        goto code_112;
+      }
+      audioConnecttoSD(ch);
       String st = braille_input();
       char ch = kerneldata_to_userdata(st);
-      if(((String)iv_str).compareTo((String)(ch))==0)
-audioConnecttoSD("C/sounds/correct.mp3");
-else audioConnecttoSD("C/sounds/wrong.mp3");
- btn_accept_isdown=false;
+      if (((String)iv_str).compareTo((String)(ch)) == 0)
+        audioConnecttoSD("C/sounds/correct.mp3");
+      else audioConnecttoSD("C/sounds/wrong.mp3");
+      btn_accept_isdown = false;
     }
     while (millis() - loopstart < 25) {
       delay(2);
@@ -747,7 +790,7 @@ void learn_writing_page(void) {
 void learn_alphabet_writing_page(void) {
   btn_cancel_isdown = false;
   btn_accept_isdown = false;
-   btn_up_isdown = false;
+  btn_up_isdown = false;
   btn_down_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
@@ -765,30 +808,31 @@ void learn_alphabet_writing_page(void) {
       print_divider();
     }
     keypress_detect();
-if(btn_accept_isdown){
-   String str_data=(String)((char)(sub_pos));
-      String data=userdata_to_kerneldata(str_data);
-      String bi_str=data.substring(1);
-    String ch_name = "C/en/alp/" + str_data + ".mp3";
-    ch = ch_name.c_str();
-    audioConnecttoSD(ch);
-    Serial.println(bi_str);
-    if(disp_state){
-    dispEnable();
-    dispPrint(bi_str.c_str());}
-    CODE_110:
-    if(audiostatus()){
-    goto CODE_110;  
-    }
-    Serial.println("Write correct alphabet shown in display:");
-    audioConnecttoSD("C/menu/eng/write_displayed_alphabet.mp3");
-     String st = braille_input();
+    if (btn_accept_isdown) {
+      String str_data = (String)((char)(sub_pos));
+      String data = userdata_to_kerneldata(str_data);
+      String bi_str = data.substring(1);
+      String ch_name = "C/en/alp/" + str_data + ".mp3";
+      ch = ch_name.c_str();
+      audioConnecttoSD(ch);
+      Serial.println(bi_str);
+      if (disp_state) {
+        dispEnable();
+        dispPrint(bi_str.c_str());
+      }
+CODE_110:
+      if (audiostatus()) {
+        goto CODE_110;
+      }
+      Serial.println("Write correct alphabet shown in display:");
+      audioConnecttoSD("C/menu/eng/write_displayed_alphabet.mp3");
+      String st = braille_input();
       char alp = kerneldata_to_userdata(st);
-      if(str_data.compareTo((String)alp)==0) audioConnecttoSD("C/sounds/correct.mp3");
+      if (str_data.compareTo((String)alp) == 0) audioConnecttoSD("C/sounds/correct.mp3");
       else audioConnecttoSD("C/sounds/wrong.mp3");
- btn_accept_isdown = false;
-}
-if (btn_down_isdown) {
+      btn_accept_isdown = false;
+    }
+    if (btn_down_isdown) {
       if (sub_pos == 90) {
         sub_pos = 65;
       } else {
@@ -807,11 +851,11 @@ if (btn_down_isdown) {
       btn_up_isdown = false;
     }
     if (btn_cancel_isdown) {
-    dispDisable();
+      dispDisable();
       c_page = learn_writing;
       return;
     }
-    
+
     while (millis() - loopstart < 25) {
       delay(2);
     }
@@ -821,11 +865,11 @@ if (btn_down_isdown) {
 void learn_number_writing_page(void) {
   btn_cancel_isdown = false;
   btn_accept_isdown = false;
-   btn_up_isdown = false;
+  btn_up_isdown = false;
   btn_down_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
-    const char* ch;
+  const char* ch;
   uint8_t sub_pos = 48;
   while (true) {
     loopstart = millis();
@@ -839,30 +883,31 @@ void learn_number_writing_page(void) {
       print_divider();
     }
     keypress_detect();
-if(btn_accept_isdown){
-   String str_data=(String)((char)(sub_pos));
-      String data=userdata_to_kerneldata(str_data);
-      String bi_str=data.substring(1);
-    String ch_name = "C/en/num/" + str_data + ".mp3";
-    ch = ch_name.c_str();
-    audioConnecttoSD(ch);
-    Serial.println(bi_str);
-    if(disp_state){
-    dispEnable();
-    dispPrint(bi_str.c_str());}
-    CODE_110:
-    if(audiostatus()){
-    goto CODE_110;  
-    }
-    Serial.println("Write correct number shown in display:");
-    audioConnecttoSD("C/menu/eng/write_displayed_number.mp3");
-     String st = braille_input();
+    if (btn_accept_isdown) {
+      String str_data = (String)((char)(sub_pos));
+      String data = userdata_to_kerneldata(str_data);
+      String bi_str = data.substring(1);
+      String ch_name = "C/en/num/" + str_data + ".mp3";
+      ch = ch_name.c_str();
+      audioConnecttoSD(ch);
+      Serial.println(bi_str);
+      if (disp_state) {
+        dispEnable();
+        dispPrint(bi_str.c_str());
+      }
+CODE_110:
+      if (audiostatus()) {
+        goto CODE_110;
+      }
+      Serial.println("Write correct number shown in display:");
+      audioConnecttoSD("C/menu/eng/write_displayed_number.mp3");
+      String st = braille_input();
       char alp = kerneldata_to_userdata(st);
-      if(str_data.compareTo((String)alp)==0) audioConnecttoSD("C/sounds/correct.mp3");
+      if (str_data.compareTo((String)alp) == 0) audioConnecttoSD("C/sounds/correct.mp3");
       else audioConnecttoSD("C/sounds/wrong.mp3");
- btn_accept_isdown = false;
-}
-if (btn_down_isdown) {
+      btn_accept_isdown = false;
+    }
+    if (btn_down_isdown) {
       if (sub_pos == 57) {
         sub_pos = 48;
       } else {
@@ -881,22 +926,21 @@ if (btn_down_isdown) {
       btn_up_isdown = false;
     }
     if (btn_cancel_isdown) {
-    dispDisable();
+      dispDisable();
       c_page = learn_writing;
       return;
     }
-    
+
     while (millis() - loopstart < 25) {
       delay(2);
     }
   }
 }
 //learn special char writing
-void learn_specialcharecter_writing_page()
-{
-   btn_cancel_isdown = false;
+void learn_specialcharecter_writing_page() {
+  btn_cancel_isdown = false;
   btn_accept_isdown = false;
-   btn_up_isdown = false;
+  btn_up_isdown = false;
   btn_down_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
@@ -914,30 +958,31 @@ void learn_specialcharecter_writing_page()
       print_divider();
     }
     keypress_detect();
-if(btn_accept_isdown){
-   String str_data=(String)((char)(sub_pos));
-      String data=userdata_to_kerneldata(str_data);
-      String bi_str=data.substring(1);
-    String ch_name = "C/en/special_char/" + str_data + ".mp3";
-    ch = ch_name.c_str();
-    audioConnecttoSD(ch);
-    Serial.println(bi_str);
-    if(disp_state){
-    dispEnable();
-    dispPrint(bi_str.c_str());}
-    CODE_110:
-    if(audiostatus()){
-    goto CODE_110;  
-    }
-    Serial.println("Write correct special character shown in display:");
-    audioConnecttoSD("C/menu/eng/write_displayed_special_char.mp3");
-     String st = braille_input();
+    if (btn_accept_isdown) {
+      String str_data = (String)((char)(sub_pos));
+      String data = userdata_to_kerneldata(str_data);
+      String bi_str = data.substring(1);
+      String ch_name = "C/en/special_char/" + str_data + ".mp3";
+      ch = ch_name.c_str();
+      audioConnecttoSD(ch);
+      Serial.println(bi_str);
+      if (disp_state) {
+        dispEnable();
+        dispPrint(bi_str.c_str());
+      }
+CODE_110:
+      if (audiostatus()) {
+        goto CODE_110;
+      }
+      Serial.println("Write correct special character shown in display:");
+      audioConnecttoSD("C/menu/eng/write_displayed_special_char.mp3");
+      String st = braille_input();
       char alp = kerneldata_to_userdata(st);
-      if(str_data.compareTo((String)alp)==0) audioConnecttoSD("C/sounds/correct.mp3");
+      if (str_data.compareTo((String)alp) == 0) audioConnecttoSD("C/sounds/correct.mp3");
       else audioConnecttoSD("C/sounds/wrong.mp3");
- btn_accept_isdown = false;
-}
-if (btn_down_isdown) {
+      btn_accept_isdown = false;
+    }
+    if (btn_down_isdown) {
       if (sub_pos == 47) {
         sub_pos = 33;
       } else {
@@ -956,11 +1001,11 @@ if (btn_down_isdown) {
       btn_up_isdown = false;
     }
     if (btn_cancel_isdown) {
-    dispDisable();
+      dispDisable();
       c_page = learn_writing;
       return;
     }
-    
+
     while (millis() - loopstart < 25) {
       delay(2);
     }
@@ -1138,8 +1183,8 @@ void practice_reading_page(void) {
 }
 //practice alphabet reading
 void practice_alphabet_reading_page(void) {
-  btn_down_isdown =false;
-  btn_up_isdown =false;
+  btn_down_isdown = false;
+  btn_up_isdown = false;
   btn_cancel_isdown = false;
   btn_accept_isdown = false;
   bool update_display = true;
@@ -1158,28 +1203,29 @@ void practice_alphabet_reading_page(void) {
     }
     keypress_detect();
     if (btn_cancel_isdown) {
-       dispClear();
-    dispDisable();
+      dispClear();
+      dispDisable();
       c_page = practice_reading;
       return;
     }
-    if(btn_accept_isdown)
-    {
-  char iv_str[2] = {0};
-  getRandomStr(iv_str, 1,"alphabet");
-  Serial.print("random char "); Serial.println(iv_str);
-  String random_kerneldata=userdata_to_kerneldata((String)iv_str);
-  random_kerneldata=random_kerneldata.substring(1);
- if(disp_state){
-    dispEnable();
-    dispPrint(random_kerneldata);}
-    audioConnecttoSD("C/menu/eng/guess_alphabet.mp3");
-    String st = braille_input();
-    char ch = kerneldata_to_userdata(st);
-    if(((String)iv_str).compareTo((String)(ch))==0)
-audioConnecttoSD("C/sounds/correct.mp3");
-else audioConnecttoSD("C/sounds/wrong.mp3");
- btn_accept_isdown=false;
+    if (btn_accept_isdown) {
+      char iv_str[2] = { 0 };
+      getRandomStr(iv_str, 1, "alphabet");
+      Serial.print("random char ");
+      Serial.println(iv_str);
+      String random_kerneldata = userdata_to_kerneldata((String)iv_str);
+      random_kerneldata = random_kerneldata.substring(1);
+      if (disp_state) {
+        dispEnable();
+        dispPrint(random_kerneldata);
+      }
+      audioConnecttoSD("C/menu/eng/guess_alphabet.mp3");
+      String st = braille_input();
+      char ch = kerneldata_to_userdata(st);
+      if (((String)iv_str).compareTo((String)(ch)) == 0)
+        audioConnecttoSD("C/sounds/correct.mp3");
+      else audioConnecttoSD("C/sounds/wrong.mp3");
+      btn_accept_isdown = false;
     }
     while (millis() - loopstart < 25) {
       delay(2);
@@ -1205,28 +1251,29 @@ void practice_number_reading_page(void) {
     }
     keypress_detect();
     if (btn_cancel_isdown) {
-       dispClear();
-    dispDisable();
+      dispClear();
+      dispDisable();
       c_page = practice_reading;
       return;
     }
-    if(btn_accept_isdown)
-    {
-  char iv_str[2] = {0};
-  getRandomStr(iv_str, 1,"number");
-  Serial.print("random char "); Serial.println(iv_str);
-  String random_kerneldata=userdata_to_kerneldata((String)iv_str);
-  random_kerneldata=random_kerneldata.substring(1);
- if(disp_state){
-    dispEnable();
-    dispPrint(random_kerneldata);}
-    audioConnecttoSD("C/menu/eng/guess_number.mp3");
+    if (btn_accept_isdown) {
+      char iv_str[2] = { 0 };
+      getRandomStr(iv_str, 1, "number");
+      Serial.print("random char ");
+      Serial.println(iv_str);
+      String random_kerneldata = userdata_to_kerneldata((String)iv_str);
+      random_kerneldata = random_kerneldata.substring(1);
+      if (disp_state) {
+        dispEnable();
+        dispPrint(random_kerneldata);
+      }
+      audioConnecttoSD("C/menu/eng/guess_number.mp3");
       String st = braille_input();
       char ch = kerneldata_to_userdata(st);
-      if(((String)iv_str).compareTo((String)(ch))==0)
-audioConnecttoSD("C/sounds/correct.mp3");
-else audioConnecttoSD("C/sounds/wrong.mp3");
- btn_accept_isdown=false;
+      if (((String)iv_str).compareTo((String)(ch)) == 0)
+        audioConnecttoSD("C/sounds/correct.mp3");
+      else audioConnecttoSD("C/sounds/wrong.mp3");
+      btn_accept_isdown = false;
     }
     while (millis() - loopstart < 25) {
       delay(2);
@@ -1235,7 +1282,7 @@ else audioConnecttoSD("C/sounds/wrong.mp3");
 }
 //practice special charecter reading
 void practice_specialcharecter_reading_page(void) {
-   btn_cancel_isdown = false;
+  btn_cancel_isdown = false;
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
@@ -1252,28 +1299,29 @@ void practice_specialcharecter_reading_page(void) {
     }
     keypress_detect();
     if (btn_cancel_isdown) {
-       dispClear();
-    dispDisable();
+      dispClear();
+      dispDisable();
       c_page = practice_reading;
       return;
     }
-    if(btn_accept_isdown)
-    {
-  char iv_str[2] = {0};
-  getRandomStr(iv_str, 1,"special");
-  Serial.print("random char "); Serial.println(iv_str);
-  String random_kerneldata=userdata_to_kerneldata((String)iv_str);
-  random_kerneldata=random_kerneldata.substring(1);
- if(disp_state){
-    dispEnable();
-    dispPrint(random_kerneldata);}
-    audioConnecttoSD("C/menu/eng/guess_special_char.mp3");
+    if (btn_accept_isdown) {
+      char iv_str[2] = { 0 };
+      getRandomStr(iv_str, 1, "special");
+      Serial.print("random char ");
+      Serial.println(iv_str);
+      String random_kerneldata = userdata_to_kerneldata((String)iv_str);
+      random_kerneldata = random_kerneldata.substring(1);
+      if (disp_state) {
+        dispEnable();
+        dispPrint(random_kerneldata);
+      }
+      audioConnecttoSD("C/menu/eng/guess_special_char.mp3");
       String st = braille_input();
       char ch = kerneldata_to_userdata(st);
-      if(((String)iv_str).compareTo((String)(ch))==0)
-audioConnecttoSD("C/sounds/correct.mp3");
-else audioConnecttoSD("C/sounds/wrong.mp3");
- btn_accept_isdown=false;
+      if (((String)iv_str).compareTo((String)(ch)) == 0)
+        audioConnecttoSD("C/sounds/correct.mp3");
+      else audioConnecttoSD("C/sounds/wrong.mp3");
+      btn_accept_isdown = false;
     }
     while (millis() - loopstart < 25) {
       delay(2);
@@ -1353,8 +1401,8 @@ void learn_reading_page(void) {
 }
 //learn alphabet reading
 void learn_alphabet_reading_page(void) {
-  btn_up_isdown=false;
-  btn_down_isdown=false;
+  btn_up_isdown = false;
+  btn_down_isdown = false;
   btn_cancel_isdown = false;
   btn_accept_isdown = false;
   bool update_display = true;
@@ -1373,19 +1421,19 @@ void learn_alphabet_reading_page(void) {
       print_divider();
     }
     keypress_detect();
-    if(btn_accept_isdown)
-    {
-      String str_data=(String)((char)(sub_pos));
-      String data=userdata_to_kerneldata(str_data.c_str());
-      String bi_str=data.substring(1);
-    String ch_name = "C/en/alp/" + str_data + ".mp3";
-    ch = ch_name.c_str();
-    audioConnecttoSD(ch);
-    Serial.println(bi_str);
-    if(disp_state){
-    dispEnable();
-    dispPrint(bi_str.c_str());}
-btn_accept_isdown=false;
+    if (btn_accept_isdown) {
+      String str_data = (String)((char)(sub_pos));
+      String data = userdata_to_kerneldata(str_data.c_str());
+      String bi_str = data.substring(1);
+      String ch_name = "C/en/alp/" + str_data + ".mp3";
+      ch = ch_name.c_str();
+      audioConnecttoSD(ch);
+      Serial.println(bi_str);
+      if (disp_state) {
+        dispEnable();
+        dispPrint(bi_str.c_str());
+      }
+      btn_accept_isdown = false;
     }
 
     if (btn_down_isdown) {
@@ -1407,7 +1455,7 @@ btn_accept_isdown=false;
       btn_up_isdown = false;
     }
     if (btn_cancel_isdown) {
-    dispDisable();
+      dispDisable();
       c_page = learn_reading;
       return;
     }
@@ -1418,8 +1466,8 @@ btn_accept_isdown=false;
 }
 //learn number reading
 void learn_number_reading_page(void) {
-  btn_up_isdown=false;
-  btn_down_isdown=false;
+  btn_up_isdown = false;
+  btn_down_isdown = false;
   btn_cancel_isdown = false;
   btn_accept_isdown = false;
   bool update_display = true;
@@ -1437,20 +1485,20 @@ void learn_number_reading_page(void) {
       Serial.println();
       print_divider();
     }
-     keypress_detect();
-    if(btn_accept_isdown)
-    {
-      String str_data=(String)((char)(sub_pos));
-      String data=userdata_to_kerneldata(str_data.c_str());
-      String bi_str=data.substring(1);
-    String ch_name = "C/en/num/" + str_data + ".mp3";
-    ch = ch_name.c_str();
-    audioConnecttoSD(ch);
-    Serial.println(bi_str);
-    if(disp_state){
-    dispEnable();
-    dispPrint(bi_str.c_str());}
-btn_accept_isdown=false;
+    keypress_detect();
+    if (btn_accept_isdown) {
+      String str_data = (String)((char)(sub_pos));
+      String data = userdata_to_kerneldata(str_data.c_str());
+      String bi_str = data.substring(1);
+      String ch_name = "C/en/num/" + str_data + ".mp3";
+      ch = ch_name.c_str();
+      audioConnecttoSD(ch);
+      Serial.println(bi_str);
+      if (disp_state) {
+        dispEnable();
+        dispPrint(bi_str.c_str());
+      }
+      btn_accept_isdown = false;
     }
 
     if (btn_down_isdown) {
@@ -1472,8 +1520,8 @@ btn_accept_isdown=false;
       btn_up_isdown = false;
     }
     if (btn_cancel_isdown) {
-    dispClear();
-    dispDisable();
+      dispClear();
+      dispDisable();
       c_page = learn_reading;
       return;
     }
@@ -1485,8 +1533,8 @@ btn_accept_isdown=false;
 }
 //learn special charecter reading
 void learn_specialcharecter_reading_page(void) {
-  btn_up_isdown=false;
-  btn_down_isdown=false;
+  btn_up_isdown = false;
+  btn_down_isdown = false;
   btn_cancel_isdown = false;
   btn_accept_isdown = false;
   bool update_display = true;
@@ -1505,19 +1553,19 @@ void learn_specialcharecter_reading_page(void) {
       print_divider();
     }
     keypress_detect();
-    if(btn_accept_isdown)
-    {
-      String str_data=(String)((char)(sub_pos));
-      String data=userdata_to_kerneldata(str_data.c_str());
-      String bi_str=data.substring(1);
-    String ch_name = "C/en/special_char/" + str_data + ".mp3";
-    ch = ch_name.c_str();
-    audioConnecttoSD(ch);
-    Serial.println(bi_str);
-    if(disp_state){
-    dispEnable();
-    dispPrint(bi_str.c_str());}
-btn_accept_isdown=false;
+    if (btn_accept_isdown) {
+      String str_data = (String)((char)(sub_pos));
+      String data = userdata_to_kerneldata(str_data.c_str());
+      String bi_str = data.substring(1);
+      String ch_name = "C/en/special_char/" + str_data + ".mp3";
+      ch = ch_name.c_str();
+      audioConnecttoSD(ch);
+      Serial.println(bi_str);
+      if (disp_state) {
+        dispEnable();
+        dispPrint(bi_str.c_str());
+      }
+      btn_accept_isdown = false;
     }
 
     if (btn_down_isdown) {
@@ -1539,7 +1587,7 @@ btn_accept_isdown=false;
       btn_up_isdown = false;
     }
     if (btn_cancel_isdown) {
-    dispDisable();
+      dispDisable();
       c_page = learn_reading;
       return;
     }
@@ -1673,7 +1721,7 @@ void english_book_page() {
     }
     String page_name = "C/en/num/" + (String)(sub_pos) + ".mp3";
     page_num = page_name.c_str();
-    
+
     keypress_detect();
     if (btn_cancel_isdown) {
       audioConnecttoSD("C/menu/eng/stop.mp3");
@@ -1945,9 +1993,9 @@ void wireless_page(void) {
       Serial.println(F("wifi"));
       print_selected(2, sub_pos);
       Serial.println(F("bluetooth"));
-       print_selected(3, sub_pos);
+      print_selected(3, sub_pos);
       Serial.println(F("web_share"));
-       print_selected(4, sub_pos);
+      print_selected(4, sub_pos);
       Serial.println(F("remote_shell"));
       Serial.println();
       print_divider();
@@ -1956,12 +2004,10 @@ void wireless_page(void) {
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
       {
         audioConnecttoSD("C/menu/eng/bluetooth.mp3");
-      }
-      else if (menu_selected(3, sub_pos))  //C/en/alp/A.mp3
+      } else if (menu_selected(3, sub_pos))  //C/en/alp/A.mp3
       {
         audioConnecttoSD("C/menu/eng/web_share.mp3");
-      }
-      else if (menu_selected(4, sub_pos))  //C/en/alp/A.mp3
+      } else if (menu_selected(4, sub_pos))  //C/en/alp/A.mp3
       {
         audioConnecttoSD("C/menu/eng/remote_shell.mp3");
       }
@@ -2142,8 +2188,8 @@ void bluetooth_page() {
     }
     if (btn_accept_isdown) {
       switch (sub_pos) {
-        case 1: Serial.println(F("                                  *turned on bluetooth"));return;
-        case 2: Serial.println(F("                                  *turned off bluetooth"));return;
+        case 1: Serial.println(F("                                  *turned on bluetooth")); return;
+        case 2: Serial.println(F("                                  *turned off bluetooth")); return;
       }
     }
     while (millis() - loopstart < 25) {
@@ -2176,8 +2222,7 @@ void web_share_page() {
       print_divider();
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/web_share_enable.mp3");
-      } else if (menu_selected(2, sub_pos)) 
-      {
+      } else if (menu_selected(2, sub_pos)) {
         audioConnecttoSD("C/menu/eng/web_share_disable.mp3");
       }
     }
@@ -2208,8 +2253,16 @@ void web_share_page() {
     }
     if (btn_accept_isdown) {
       switch (sub_pos) {
-        case 1:webshareEnable();Serial.println("Started at port8080 ip");Serial.println(WiFi.localIP());Serial.println(F("                                  webshare enabled"));return;
-        case 2: webshareDisable();Serial.println(F("                                webshare disabled"));return;
+        case 1:
+          webshareEnable();
+          Serial.println("Started at port8080 ip");
+          Serial.println(WiFi.localIP());
+          Serial.println(F("                                  webshare enabled"));
+          return;
+        case 2:
+          webshareDisable();
+          Serial.println(F("                                webshare disabled"));
+          return;
       }
     }
     while (millis() - loopstart < 25) {
@@ -2242,8 +2295,7 @@ void remote_shell_page() {
       print_divider();
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/remote_shell_enable.mp3");
-      } else if (menu_selected(2, sub_pos))  
-      {
+      } else if (menu_selected(2, sub_pos)) {
         audioConnecttoSD("C/menu/eng/remote_shell_disable.mp3");
       }
     }
@@ -2274,8 +2326,8 @@ void remote_shell_page() {
     }
     if (btn_accept_isdown) {
       switch (sub_pos) {
-        case 1: Serial.println(F("                                 remote shell enabled"));return;
-        case 2: Serial.println(F("                               remote shell disabled"));return;
+        case 1: Serial.println(F("                                 remote shell enabled")); return;
+        case 2: Serial.println(F("                               remote shell disabled")); return;
       }
     }
     while (millis() - loopstart < 25) {
@@ -2354,7 +2406,7 @@ void call_page() {
   btn_cancel_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
-   const char* num;
+  const char* num;
   audioConnecttoSD("C/menu/eng/input_number.mp3");
   while (true) {
     loopstart = millis();
@@ -2375,29 +2427,30 @@ void call_page() {
       char digit = kerneldata_to_userdata(st);
       if (numlock && numlock_f(digit)) phone_number += (String)(digit);
       Serial.println(phone_number);
- String num_name = "C/en/num/" + (String)(digit) + ".mp3";
-    num = num_name.c_str();
-    audioConnecttoSD(num);
-    btn_accept_isdown = false;
+      String num_name = "C/en/num/" + (String)(digit) + ".mp3";
+      num = num_name.c_str();
+      audioConnecttoSD(num);
+      btn_accept_isdown = false;
     }
-     if (btn_backspace_isdown) {
-        int length = phone_number.length();
-        phone_number[length - 1] = '\0';
-        Serial.println("Backspace pressed. phone num:"+phone_number);
-        btn_backspace_isdown = false;
-      }
-     if(phone_number.length() == 11)
-        audioConnecttoSD("C/menu/eng/make_call.mp3");
-      if (ctrl) {
-          make_call(phone_number);
-          btn_accept_isdown = false;
-          phone_number = "";
-          btn_accept_isdown = false;
-          ctrl=false;
-      }
-     if (btn_cancel_isdown) {
-      c_page = sim; return;
-      }
+    if (btn_backspace_isdown) {
+      int length = phone_number.length();
+      phone_number[length - 1] = '\0';
+      Serial.println("Backspace pressed. phone num:" + phone_number);
+      btn_backspace_isdown = false;
+    }
+    if (phone_number.length() == 11)
+      audioConnecttoSD("C/menu/eng/make_call.mp3");
+    if (ctrl) {
+      make_call(phone_number);
+      btn_accept_isdown = false;
+      phone_number = "";
+      btn_accept_isdown = false;
+      ctrl = false;
+    }
+    if (btn_cancel_isdown) {
+      c_page = sim;
+      return;
+    }
     while (millis() - loopstart < 25) {
       delay(2);
     }
@@ -2439,6 +2492,8 @@ void settings_page(void) {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+  int itemCount = sizeof(settingmenuItems) / sizeof(settingmenuItems[0]);
+  menu.setItems(settingmenuItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2462,6 +2517,7 @@ void settings_page(void) {
       Serial.println(F("power"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos-1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/language.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -2473,10 +2529,10 @@ void settings_page(void) {
       } else if (menu_selected(4, sub_pos))  //C/en/alp/A.mp3
       {
         audioConnecttoSD("C/menu/eng/touch_pen.mp3");
-      }else if (menu_selected(5, sub_pos))  //C/en/alp/A.mp3
+      } else if (menu_selected(5, sub_pos))  //C/en/alp/A.mp3
       {
         audioConnecttoSD("C/menu/eng/update_firmware.mp3");
-      }else if (menu_selected(6, sub_pos))  //C/en/alp/A.mp3
+      } else if (menu_selected(6, sub_pos))  //C/en/alp/A.mp3
       {
         audioConnecttoSD("C/menu/eng/initiate_failsafe_protocol.mp3");
       } else if (menu_selected(7, sub_pos))  //C/en/alp/A.mp3
@@ -2536,6 +2592,7 @@ void language_page() {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2648,8 +2705,14 @@ void voice_output_page() {
     }
     if (btn_accept_isdown) {
       switch (sub_pos) {
-        case 1:voice_state=true; Serial.println(F("                                  *voice output enabled"));return;
-        case 2:voice_state=false; Serial.println(F("                                  *voice output disabled"));return;
+        case 1:
+          voice_state = true;
+          Serial.println(F("                                  *voice output enabled"));
+          return;
+        case 2:
+          voice_state = false;
+          Serial.println(F("                                  *voice output disabled"));
+          return;
       }
     }
     while (millis() - loopstart < 25) {
@@ -2712,8 +2775,14 @@ void braille_output_page() {
     }
     if (btn_accept_isdown) {
       switch (sub_pos) {
-        case 1: disp_state=true;Serial.println(F("                                  *braille output enabled"));return;
-        case 2: disp_state=false;Serial.println(F("                                  *braille output disabled"));return;
+        case 1:
+          disp_state = true;
+          Serial.println(F("                                  *braille output enabled"));
+          return;
+        case 2:
+          disp_state = false;
+          Serial.println(F("                                  *braille output disabled"));
+          return;
       }
     }
     while (millis() - loopstart < 25) {
@@ -2787,9 +2856,8 @@ void touch_pen_page() {
   }
 }
 //update_firmware section
-void update_firmware_page()
-{
-btn_cancel_isdown = false;
+void update_firmware_page() {
+  btn_cancel_isdown = false;
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
@@ -2800,15 +2868,15 @@ btn_cancel_isdown = false;
       clear_screen();
       Serial.println(F("        update firmware"));
       print_divider();
-audioConnecttoSD("C/menu/eng/activate_update_firmware.mp3");
+      audioConnecttoSD("C/menu/eng/activate_update_firmware.mp3");
       Serial.println();
       print_divider();
     }
     keypress_detect();
-     if (btn_accept_isdown) {
+    if (btn_accept_isdown) {
       downloadUpdate();
-      updateFromFS(SD,latest_update_loc);
-     btn_accept_isdown=false;
+      updateFromFS(SD, latest_update_loc);
+      btn_accept_isdown = false;
     }
     if (btn_cancel_isdown) {
       c_page = settings;
@@ -2820,8 +2888,7 @@ audioConnecttoSD("C/menu/eng/activate_update_firmware.mp3");
   }
 }
 //failsafe section
-void init_failsafe_protocol_page()
-{
+void init_failsafe_protocol_page() {
   btn_cancel_isdown = false;
   btn_accept_isdown = false;
   bool update_display = true;
@@ -2833,14 +2900,14 @@ void init_failsafe_protocol_page()
       clear_screen();
       Serial.println(F("        failsafe protocol"));
       print_divider();
- audioConnecttoSD("C/menu/eng/activate_failsafe_protocol.mp3");
+      audioConnecttoSD("C/menu/eng/activate_failsafe_protocol.mp3");
       Serial.println();
       print_divider();
     }
     keypress_detect();
-     if (btn_accept_isdown) {
-      updateFromFS(SD,failsafe_update_loc);
-     btn_accept_isdown=false;
+    if (btn_accept_isdown) {
+      updateFromFS(SD, failsafe_update_loc);
+      btn_accept_isdown = false;
     }
     if (btn_cancel_isdown) {
       c_page = settings;
@@ -2860,6 +2927,8 @@ void power_page() {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+  int itemCount = sizeof(powermenuItems) / sizeof(powermenuItems[0]);
+  menu.setItems(powermenuItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2874,6 +2943,7 @@ void power_page() {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos-1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/power_off.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -2907,8 +2977,13 @@ void power_page() {
     }
     if (btn_accept_isdown) {
       switch (sub_pos) {
-        case 1: Serial.println(F("Shutting Down..."));esp_deep_sleep_start();return;
-        case 2: ESP.restart();return;
+        case 1:
+          Serial.println(F("Shutting Down..."));
+          audioConnecttoSD(shutdown_sound);
+          delay(3500);
+          esp_deep_sleep_start();
+          return;
+        case 2: ESP.restart(); return;
       }
     }
     while (millis() - loopstart < 25) {
@@ -2965,29 +3040,26 @@ char kerneldata_to_userdata(String data) {
 }
 String userdata_to_kerneldata(String data) {
   for (int i = 0; i < sizeof(eng) / sizeof(eng[0]); i++) {
-     if (data.compareTo((String)eng[i].userdata) == 0)
-      {
-         return eng[i].kerneldata;
-      }
+    if (data.compareTo((String)eng[i].userdata) == 0) {
+      return eng[i].kerneldata;
+    }
   }
 }
-void getRandomStr(char* output, int len,String type){
-    char* eligible_chars;
-    if(type.compareTo("alphabet")==0){
+void getRandomStr(char* output, int len, String type) {
+  char* eligible_chars;
+  if (type.compareTo("alphabet") == 0) {
     eligible_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    }
-    else if(type.compareTo("number")==0){
-    eligible_chars = "0123456789";  
-    }
-    else if(type.compareTo("special")==0){
-    eligible_chars="@$#%^&*()_-+=?><:,;\/";
-    }
-    
-    for(int i = 0; i< len; i++){
-        uint8_t random_index = random(0, strlen(eligible_chars));
-        output[i] = eligible_chars[random_index];
-    }
-    //Serial.print("Random String: "); Serial.println(output);
+  } else if (type.compareTo("number") == 0) {
+    eligible_chars = "0123456789";
+  } else if (type.compareTo("special") == 0) {
+    eligible_chars = "@$#%^&*()_-+=?><:,;\/";
+  }
+
+  for (int i = 0; i < len; i++) {
+    uint8_t random_index = random(0, strlen(eligible_chars));
+    output[i] = eligible_chars[random_index];
+  }
+  //Serial.print("Random String: "); Serial.println(output);
 }
 
 void readFile(fs::FS& fs, const char* path) {
@@ -3049,43 +3121,84 @@ void appendFile(fs::FS& fs, const char* path, String message) {
 }
 
 void keypress_detect() {
-  int cnt = 0;
-  char customKey = customKeypad.getKey();
-  if (customKey == 'e') {
-    btn_accept_isdown = true;
-  }
-  if (customKey == 'u') {
-    btn_up_isdown = true;
-  }
-  if (customKey == 'd') {
-    btn_down_isdown = true;
-  }
-  if (customKey == 'c') {
-    btn_cancel_isdown = true;
-  }
-  if (customKey == 'b' && (c_page == doc_writing||c_page == call)) {
-    Serial.println("backspace");
-    btn_backspace_isdown = true;
-  }
-   if (customKey == '*') {
-    ctrl = true;
-  }
-  if (customKey == 'C') {
-    capslock = !capslock;
-    if (capslock) {
-      Serial.println("capslock on");
-    }
-    if (!capslock) {
-      Serial.println("capslock off");
-    }
-  }
-  if (customKey == 'n') {
-    numlock = !numlock;
-    if (numlock) {
-      Serial.println("numlock on");
-    }
-    if (!numlock) {
-      Serial.println("numlock off");
+  char customKey;
+  int cnt;
+  if (customKeypad.getKeys()) {
+    for (int i = 0; i < LIST_MAX; i++)  // Scan the whole key list.
+    {
+      if (customKeypad.key[i].stateChanged)  // Only find keys that have changed state.
+      {
+        switch (customKeypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
+          case PRESSED:
+            cnt = 0;
+            customKey = customKeypad.key[i].kchar;
+            if (customKey == 'e') {
+              btn_accept_isdown = true;
+            }
+            else if (customKey == 'u') {
+              if(control_key_hold){
+              volume=volume+1;
+              if(volume>21)volume=21;
+              audioSetVolume(volume);
+              Serial.println(audioGetVolume());
+              }
+              else if(space_key_hold){
+                brightness=brightness+20;
+                if(brightness>100)brightness=100;
+                Serial.println("");
+              }
+              else if(!control_key_hold||!space_key_hold) btn_up_isdown = true;
+            }
+            else if (customKey == 'd') {
+                            if(control_key_hold){
+              volume=volume-1;
+              if(volume<1)volume=1;
+              audioSetVolume(volume);
+              Serial.println(audioGetVolume());
+              }
+              else if(!control_key_hold) btn_down_isdown = true;
+            }
+            else if (customKey == 'c') {
+              btn_cancel_isdown = true;
+            }
+            else if (customKey == 'b' && (c_page == doc_writing || c_page == call)) {
+              Serial.println("backspace");
+              btn_backspace_isdown = true;
+            }
+            else if (customKey == '*') {
+              ctrl = true;
+            }
+            else if (customKey == 'C') {
+              capslock = !capslock;
+              if (capslock) {
+                Serial.println("capslock on");
+              }
+              if (!capslock) {
+                Serial.println("capslock off");
+              }
+            }
+            else if (customKey == 'n') {
+              numlock = !numlock;
+              if (numlock) {
+                Serial.println("numlock on");
+              }
+              if (!numlock) {
+                Serial.println("numlock off");
+              }
+            }
+            break;
+            case HOLD:
+            customKey = customKeypad.key[i].kchar;
+            if(customKey=='*')control_key_hold=true;
+            if(customKey=='s')space_key_hold=true;
+            break;
+            case RELEASED:
+            customKey = customKeypad.key[i].kchar;
+            if(customKey=='*')control_key_hold=false;
+            if(customKey=='s')space_key_hold=false;
+            break;
+        }
+      }
     }
   }
 }
@@ -3111,7 +3224,7 @@ void send_sms(String phn_num, String msg) {
 
 void make_call(String phn_num) {
   phn_num = "ATD" + phn_num + ";";
-  Serial.println("calling..."+phn_num);
+  Serial.println("calling..." + phn_num);
   Serial2.println(phn_num);
   delay(40000);
   waitForResponse();
@@ -3148,5 +3261,3 @@ void read_for_backspace(fs::FS& fs, const char* path) {
   Serial.println(s);
   file.close();
 }
-
-

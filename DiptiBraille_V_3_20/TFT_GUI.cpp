@@ -385,8 +385,11 @@ void TFT_GUI::showTime(uint32_t msTime){
 
 
 void TFT_GUI::bootUP(){
+  for(int i=0;i<=255;i++){analogWrite(TFT_BL,i);delay(4);}
   drawSdJpeg("/boot0.jpg", 0, 0);     // This draws a jpeg pulled off the SD Card
   delay(2000);
+  for(int i=255;i>=0;i--){analogWrite(TFT_BL,i);delay(4);}
   drawSdJpeg("/boot1.jpg", 0, 0);
+  for(int i=0;i<=255;i++){analogWrite(TFT_BL,i);delay(4);}
   delay(4000);
 }

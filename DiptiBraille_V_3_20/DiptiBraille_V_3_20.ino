@@ -187,6 +187,7 @@ enum pagetype { root_menu,
 enum pagetype c_page = root_menu;
 
 void setup() {
+  analogWrite(TFT_BL,0);
   Serial.begin(115200);
   tft.init();
   tft.setRotation(2);

@@ -80,7 +80,7 @@ void dispTask(void* parameter) {
   struct dispMessage dispTxTaskMessage;
 
   disp.setPins(16, 15, 7, 1);
-  disp.initDisplay(30);
+  disp.initDisplay(40);
   disp.clear();
 
   while (true) {

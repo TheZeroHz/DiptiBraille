@@ -34,6 +34,7 @@ bool disp_state = true;
 bool voice_state = true;
 bool control_key_hold = false;
 bool space_key_hold = false;
+int frequency=0;
 uint8_t volume = 10;
 int brightness = 100;
 const byte ROWS = 4;
@@ -45,7 +46,7 @@ char hexaKeys[ROWS][COLS] = {
   { 'd', 'u', 's', 'C' }
 };
 
-byte rowPins[ROWS] = { 47, 48, 45, 38 };
+byte rowPins[ROWS] = { 47, 48, 1, 38 }; //45(instant fry your board) should not be used otherwise you'll get fried board
 byte colPins[COLS] = { 39, 40, 41, 42 };
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
 
@@ -134,7 +135,7 @@ language eng[] = {
 String set_data = "E000000", s;
 String dataa, buff, phone_number;
 const char* ssid = "Rakib";
-const char* password = "rakib@2023";
+const char* password = "rakib@2024";
 bool capslock = false;
 bool numlock = false;
 bool btn_cancel_isdown = false;
@@ -207,6 +208,7 @@ void setup() {
   webshareInit();
   audioInit();
   displayInit();
+  frequency=dispGetFreq();
   audioSetVolume(21);
   log_i("current display frequency is: %d", dispGetFreq());
   log_i("current volume is: %d", audioGetVolume());
@@ -3183,27 +3185,38 @@ void keypress_detect() {
             if (customKey == 'e') {
               btn_accept_isdown = true;
             } else if (customKey == 'u') {
-              if (control_key_hold) {
+              if (control_key_hold&&!space_key_hold) {
                 volume = volume + 1;
                 if (volume > 21) volume = 21;
                 audioSetVolume(volume);
                 audioConnecttoSD("/C/sounds/beep.mp3");
                 Serial.println(audioGetVolume());
-              } else if (space_key_hold) {
+              }
+              else if(control_key_hold&&space_key_hold){
+                frequency=frequency+5;
+                dispSetFreq((uint8_t)(frequency));
+                 Serial.println(dispGetFreq());
+              }
+               else if (space_key_hold&&!control_key_hold) {
                 brightness = brightness + 20;
                 if (brightness > 100) brightness = 100;
                 Serial.println(brightness);
                 menu.setBright(brightness);
               } else if (!control_key_hold || !space_key_hold) btn_up_isdown = true;
             } else if (customKey == 'd') {
-              if (control_key_hold) {
+              if (control_key_hold&&!space_key_hold) {
                 volume = volume - 1;
                 if (volume < 1) volume = 1;
                 audioSetVolume(volume);
                 audioConnecttoSD("/C/sounds/beep.mp3");
                 Serial.println(audioGetVolume());
               }
-              else if (space_key_hold) {
+              else if(control_key_hold&&space_key_hold){
+                frequency=frequency-5;
+                dispSetFreq((uint8_t)(frequency));
+                Serial.println(dispGetFreq());
+              }
+              else if (space_key_hold&&!control_key_hold) {
                 brightness = brightness - 20;
                 if (brightness < 0) brightness =0;
                 Serial.println(brightness);

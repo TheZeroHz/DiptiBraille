@@ -10,7 +10,7 @@ BleKeyboard bleKeyboard;
 
 #define DEBUG_AUDIO false
 #define DEBUG_WEBSHARE true
-#define braille_version "3.20"
+#define braille_version "3.21"
 #define version_type " beta"
 String update_url="https://drive.google.com/uc?id=1F_yV9xp4O4s3-oyEsIUqHSSqvUNJXbRn&export=download";
 String latest_update_loc="/C/firmware/current/update.bin";

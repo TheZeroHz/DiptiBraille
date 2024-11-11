@@ -55,8 +55,8 @@ int Display::binstrToint(String binary_string) {
 }
 
 void Display::pushToRegister(int base_10) {
-  if(base_10){}
-  vTaskDelay((TickType_t)1/ portTICK_PERIOD_MS);
+ // Serial.print("Push:");
+ // Serial.println(base_10);
   if (Settings.state == DISPLAY_ENABLE) {
     digitalWrite(Settings.STCP, LOW);
     shiftOut(Settings.DS, Settings.SHCP, LSBFIRST, base_10);
@@ -72,9 +72,9 @@ void Display::clear() {
 void Display::writeDec(int DATA_DECIMAL) {
   float timer = 1000.0 / ((Settings.burning_coefficient + Settings.cooling_coefficient) * Settings.frequency);
   pushToRegister(DATA_DECIMAL);
-  vTaskDelay((int)(timer * Settings.burning_coefficient)/ portTICK_PERIOD_MS);
+  delay((int)(timer * Settings.burning_coefficient));
   pushToRegister(IDLE_CODE);
-  vTaskDelay((int)(timer * Settings.cooling_coefficient)/ portTICK_PERIOD_MS);
+  delay((int)(timer * Settings.cooling_coefficient));
 }
 
 void Display::writeBinStr(String DATA_BINARY_STRING) {

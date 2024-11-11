@@ -1,16 +1,17 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include <Arduino.h>  // Include this if you are using Arduino platforms
+#include <Arduino.h>  // Include this if you are using Arduino platform
+
 #define DISPLAY_ENABLE true
 #define DISPLAY_DISABLE false
 #define DEFAULT_STATE DISPLAY_ENABLE
-#define DEFAULT_FREQUENCY 80
+#define DEFAULT_FREQUENCY 30
 #define DEFAULT_COOLINGFACTOR 5
 #define DEFAULT_BURNINGFACTOR 1
 #define RESET_CODE 128
 #define IDLE_CODE 0
-#define USE_SHIFT_REGISTER 1
+#define USE_SHIFT_REGISTER 0
 
 struct DisplaySettings {
     int STCP, DS, SHCP, frequency, quantity;
@@ -19,8 +20,6 @@ struct DisplaySettings {
 };
 
 class Display {
-  private:
-  bool FORCE_PUSH=false;
 protected:
     float version = 1.01;
     DisplaySettings Settings;
@@ -30,7 +29,7 @@ protected:
 public:
     String printData="";
     void loop();
-    void setPins(int dataPin, int  , int latchPin, int numOFcells);
+    void setPins(int dataPin, int clockPin, int latchPin, int numOFcells);
     void initDisplay(int refresh_rate);
     void disable();
     void enable();

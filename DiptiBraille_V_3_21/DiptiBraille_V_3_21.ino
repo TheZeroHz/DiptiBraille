@@ -3,24 +3,50 @@
 #include <TFT_eSPI.h>
 #include "TFT_GUI.h"
 #include "qrcode.h"
-TFT_eSPI tft = TFT_eSPI();  // Create an instance of the TFT_eSPI library
-QRcode qrcode (&tft);
-WiFiManager wm;
+#include "EchoPad.h"
+
 #define SCREEN_WIDTH 240
 #define SCREEN_HEIGHT 240
 #define ITEM_HEIGHT 40
 #define ANIMATION_DURATION 500
-
+WiFiManager wm;
+TFT_eSPI tft = TFT_eSPI();  // Create an instance of the TFT_eSPI library
+TFT_eSPI tft2=TFT_eSPI();
+QRcode qrcode (&tft);
+EchoPad echopad(tft2);
 TFT_GUI menu(tft, SCREEN_WIDTH, SCREEN_HEIGHT, ITEM_HEIGHT, ANIMATION_DURATION);
 
 String rootmenuItems[] = { "Write", "Read", "Audio Book", "Calculator", "Wireless", "Sim", "Settings" };
-String writemenuItems[] = { "Docs", "Practice", "Learn" };
-String wirelessmenuItems[] = {"WiFi","Bluetooth","WebShare","RemoteShell"};
-String wifimenuItems[]={"Turn On","Turn Off","Join Network"};
+//write
+String writemenuItems[] = { "Docs writing", "Practice writing", "Learn writing" };
+String practiceWritingItems[]={"alphabet","number","special character"};
+String learnWritingItems[]={"alphabet","number","special character"};
+//read
+String readmenuItems[] = { "Docs reading", "Practice reading", "Learn reading" };
+String practiceReadingItems[]={"alphabet","number","special character"};
+String learnReadingItems[]={"alphabet","number","special character"};
+//audiobook
+String audiobookItems[] = { "Bengali Book", "English Book", "Math Book" };
+//calculator
+String calculatorItems[] = { "Addition", "Subtraction", "Multiplication", "Division" };
+//wireless
+String wirelessmenuItems[] = {"WiFi","Bluetooth","WebShare","RemoteShell","BLE Keyboard"};
+//wifi
+String wifimenuItems[]={"Enter SSID","Enter Password","Join Network"};
+//bluetooth
+String bluetoothItems[]={"Turn On","Turn Off"};
+//webshare
 String websharemenuItems[]={"Enable WebShare","Disable WebShare"};
+//remoteshell
+String remoteshellItems[]={"Enable remoteshell","Disable remoteshell"};
+//sim
+String simItems[]={"Call","Message"};
+//settings
 String settingmenuItems[] = { "Language", "Voice output", "Braille output", "Touch pen", "Update firmware", "Factory Reset", "Power" };
 String languagemenuItems[] = { "English", "Bengali" };
 String voicemenuItems[] = { "Enable", "Disable" };
+String brailleOutputItems[] = { "Enable", "Disable" };
+String touchpenItems[] = { "Enable", "Disable" };
 String powermenuItems[] = { "Power Off", "Restart" };
 
 const byte CS = 10;
@@ -130,7 +156,7 @@ language eng[] = {
 #define learn_reading_cnt 3
 #define audio_book_cnt 3
 #define calculator_cnt 4
-#define wireless_cnt 4
+#define wireless_cnt 5
 #define settings_cnt 7
 String set_data = "E000000", s;
 String dataa, buff, phone_number;
@@ -181,6 +207,7 @@ enum pagetype { root_menu,
                 bluetooth,
                 web_share,
                 remote_shell,
+                ble_keyboard,
                 call,
                 message,
                 language,
@@ -198,30 +225,37 @@ void setup() {
   tft.init();
   tft.setRotation(4);
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_8, 1);
+
+  
+  qrcode.init();
+  webshareInit();
+  audioInit();
+  displayInit();
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print("=");
     delay(10);
   }
-  bleKeyboard.begin();
-  qrcode.init();
-  webshareInit();
-  audioInit();
-  displayInit();
   frequency=dispGetFreq();
-  audioSetVolume(21);
+  audioSetVolume(15);
   log_i("current display frequency is: %d", dispGetFreq());
   log_i("current volume is: %d", audioGetVolume());
+  if (!SD.exists("/")) {
+    menu.displayHardwareInfo(sdMounted, sdTotalSize, sdUsedSpace, sdType);
+    menu.setBright(40);
+  }
+  else{
   audioConnecttoSD(boot_sound);
   menu.bootUP();
   menu.displayHardwareInfo(sdMounted, sdTotalSize, sdUsedSpace, sdType);
   menu.fadeUP();
-  delay(5000);
+  delay(5000);}
+  
 }
 
 void loop() {
   switch (c_page) {
-    KeyBoard_Connected = bleKeyboard.isConnected();
+    
     case root_menu: root_menu_page(); break;
     case write_f: write_f_page(); break;
     case read_f: read_f_page(); break;
@@ -268,6 +302,7 @@ void loop() {
     case bluetooth: bluetooth_page(); break;
     case web_share: web_share_page(); break;
     case remote_shell: remote_shell_page(); break;
+    case ble_keyboard:ble_keyboard_page();break;
     //sim
     case call: call_page(); break;
     case message: message_page(); break;
@@ -465,24 +500,21 @@ void doc_writing_page(void) {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+  tft.fillScreen(TFT_BLACK);
+  echopad.drawTitleBar();        // Draw the title bar
+  echopad.drawTextEditor();      // Draw the text editor interface
   while (true) {
+    echopad.blinkCursor();
     loopstart = millis();
     if (update_display) {
       update_display = false;
       clear_screen();
       Serial.println(F("        doc writing "));
-      print_divider();
-      print_selected(1, 1);
-      Serial.println(F("write to text file"));
-      Serial.println();
-      print_divider();
     }
     keypress_detect();
     if (btn_accept_isdown) {
       String st = braille_input();
       char udata = kerneldata_to_userdata(st);
-      Serial.println(udata);
-      bleKeyboard.print(udata);
       if (numlock && numlock_f(udata)) appendFile(SD, "/text.txt", (String)(udata));
       if (!numlock) {
         if (!capslock && (int)udata > 64 && (int)udata < 92) {
@@ -490,6 +522,8 @@ void doc_writing_page(void) {
         }
         appendFile(SD, "/text.txt", (String)(udata));
       }
+      Serial.println(udata);
+      echopad.handleUserInput(udata);
       btn_accept_isdown = false;
     }
     if (btn_backspace_isdown) {
@@ -518,6 +552,8 @@ void practice_writing_page(void) {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+    int itemCount = sizeof(practiceWritingItems) / sizeof(practiceWritingItems[0]);
+  menu.setItems(practiceWritingItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -534,6 +570,7 @@ void practice_writing_page(void) {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos - 1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/practice_alphabet_writing.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -586,6 +623,7 @@ void practice_alphabet_writing_page(void) {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+  menu.setItems(new String[1]{"practice alphabet writing"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -596,6 +634,7 @@ void practice_alphabet_writing_page(void) {
       Serial.println(F("practice alphabet writing"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -609,11 +648,13 @@ void practice_alphabet_writing_page(void) {
       Serial.println(iv_str);
       String ch_name = "C/en/alp/" + (String)iv_str + ".mp3";
       ch = ch_name.c_str();
+      /**
       audioConnecttoSD("C/menu/eng/write.mp3");
 code_112:
       if (audiostatus()) {
         goto code_112;
       }
+     **/
       audioConnecttoSD(ch);
       String st = braille_input();
       char ch = kerneldata_to_userdata(st);
@@ -634,6 +675,7 @@ void practice_number_writing_page(void) {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+    menu.setItems(new String[1]{"practice number writing"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -644,6 +686,7 @@ void practice_number_writing_page(void) {
       Serial.println(F("practice number writing"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -658,10 +701,11 @@ void practice_number_writing_page(void) {
       String ch_name = "C/en/num/" + (String)iv_str + ".mp3";
       ch = ch_name.c_str();
       audioConnecttoSD("C/menu/eng/write.mp3");
-code_112:
+/*code_112:
       if (audiostatus()) {
         goto code_112;
       }
+      */
       audioConnecttoSD(ch);
       String st = braille_input();
       char ch = kerneldata_to_userdata(st);
@@ -682,6 +726,7 @@ void practice_specialcharecter_writing_page(void) {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+  menu.setItems(new String[1]{"practice special charecter writing"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -692,6 +737,7 @@ void practice_specialcharecter_writing_page(void) {
       Serial.println(F("practice special charecter writing"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -706,10 +752,11 @@ void practice_specialcharecter_writing_page(void) {
       String ch_name = "C/en/special_char/" + (String)iv_str + ".mp3";
       ch = ch_name.c_str();
       audioConnecttoSD("C/menu/eng/write.mp3");
+/*
 code_112:
       if (audiostatus()) {
         goto code_112;
-      }
+      }*/
       audioConnecttoSD(ch);
       String st = braille_input();
       char ch = kerneldata_to_userdata(st);
@@ -732,6 +779,8 @@ void learn_writing_page(void) {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+   int itemCount = sizeof(learnWritingItems) / sizeof(learnWritingItems[0]);
+  menu.setItems(learnWritingItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -748,6 +797,7 @@ void learn_writing_page(void) {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos - 1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/learn_alphabet_writing.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -804,6 +854,7 @@ void learn_alphabet_writing_page(void) {
   uint32_t loopstart;
   const char* ch;
   uint8_t sub_pos = 65;
+   menu.setItems(new String[1]{"learn alphabet writing"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -814,6 +865,7 @@ void learn_alphabet_writing_page(void) {
       Serial.println(F("learn alphabet writing"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_accept_isdown) {
@@ -828,10 +880,11 @@ void learn_alphabet_writing_page(void) {
         dispEnable();
         dispPrint(bi_str.c_str());
       }
+      /*
 CODE_110:
       if (audiostatus()) {
         goto CODE_110;
-      }
+      }*/
       Serial.println("Write correct alphabet shown in display:");
       audioConnecttoSD("C/menu/eng/write_displayed_alphabet.mp3");
       String st = braille_input();
@@ -879,6 +932,7 @@ void learn_number_writing_page(void) {
   uint32_t loopstart;
   const char* ch;
   uint8_t sub_pos = 48;
+ menu.setItems(new String[1]{"learn number writing"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -889,6 +943,7 @@ void learn_number_writing_page(void) {
       Serial.println(F("learn number writing"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_accept_isdown) {
@@ -903,10 +958,11 @@ void learn_number_writing_page(void) {
         dispEnable();
         dispPrint(bi_str.c_str());
       }
+      /*
 CODE_110:
       if (audiostatus()) {
         goto CODE_110;
-      }
+      }*/
       Serial.println("Write correct number shown in display:");
       audioConnecttoSD("C/menu/eng/write_displayed_number.mp3");
       String st = braille_input();
@@ -954,6 +1010,7 @@ void learn_specialcharecter_writing_page() {
   uint32_t loopstart;
   const char* ch;
   uint8_t sub_pos = 33;
+  menu.setItems(new String[1]{"learn special charecter writing"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -964,6 +1021,7 @@ void learn_specialcharecter_writing_page() {
       Serial.println(F("learn special charecter writing"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_accept_isdown) {
@@ -978,10 +1036,12 @@ void learn_specialcharecter_writing_page() {
         dispEnable();
         dispPrint(bi_str.c_str());
       }
+      /*
 CODE_110:
       if (audiostatus()) {
         goto CODE_110;
       }
+      */
       Serial.println("Write correct special character shown in display:");
       audioConnecttoSD("C/menu/eng/write_displayed_special_char.mp3");
       String st = braille_input();
@@ -1028,6 +1088,8 @@ void read_f_page(void) {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+    int itemCount = sizeof(readmenuItems) / sizeof(readmenuItems[0]);
+  menu.setItems(readmenuItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1044,6 +1106,7 @@ void read_f_page(void) {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos - 1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/document_reading.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -1095,6 +1158,7 @@ void doc_reading_page(void) {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+   menu.setItems(new String[1]{"read to text file"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1106,6 +1170,7 @@ void doc_reading_page(void) {
       Serial.println(F("read to text file"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -1128,6 +1193,8 @@ void practice_reading_page(void) {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+      int itemCount = sizeof(practiceReadingItems) / sizeof(practiceReadingItems[0]);
+  menu.setItems(practiceReadingItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1144,6 +1211,7 @@ void practice_reading_page(void) {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos-1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/practice_alphabet_reading.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -1198,6 +1266,7 @@ void practice_alphabet_reading_page(void) {
   bool update_display = true;
   const char* ch;
   uint32_t loopstart;
+   menu.setItems(new String[1]{"practice alphabet reading"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1208,6 +1277,7 @@ void practice_alphabet_reading_page(void) {
       Serial.println(F("practice alphabet reading"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -1246,6 +1316,7 @@ void practice_number_reading_page(void) {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+  menu.setItems(new String[1]{"practice number reading"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1256,6 +1327,7 @@ void practice_number_reading_page(void) {
       Serial.println(F("practice number reading"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -1294,6 +1366,7 @@ void practice_specialcharecter_reading_page(void) {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+    menu.setItems(new String[1]{"practice special charecter reading"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1304,6 +1377,7 @@ void practice_specialcharecter_reading_page(void) {
       Serial.println(F("practice special charecter reading"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -1345,6 +1419,8 @@ void learn_reading_page(void) {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+  int itemCount = sizeof(learnReadingItems) / sizeof(learnReadingItems[0]);
+  menu.setItems(learnReadingItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1361,6 +1437,7 @@ void learn_reading_page(void) {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos - 1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/learn_alphabet_reading.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -1417,6 +1494,7 @@ void learn_alphabet_reading_page(void) {
   uint32_t loopstart;
   const char* ch;
   uint8_t sub_pos = 65;
+  menu.setItems(new String[1]{"learn alphabet reading"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1427,6 +1505,7 @@ void learn_alphabet_reading_page(void) {
       Serial.println(F("learn alphabet reading"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_accept_isdown) {
@@ -1482,6 +1561,7 @@ void learn_number_reading_page(void) {
   uint32_t loopstart;
   const char* ch;
   uint8_t sub_pos = 48;
+  menu.setItems(new String[1]{"learn number reading"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1492,6 +1572,7 @@ void learn_number_reading_page(void) {
       Serial.println(F("learn number reading"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_accept_isdown) {
@@ -1549,6 +1630,7 @@ void learn_specialcharecter_reading_page(void) {
   uint32_t loopstart;
   const char* ch;
   uint8_t sub_pos = 33;
+   menu.setItems(new String[1]{"learn special charecter reading"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1559,6 +1641,7 @@ void learn_specialcharecter_reading_page(void) {
       Serial.println(F("learn special charecter reading"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_accept_isdown) {
@@ -1613,6 +1696,8 @@ void audio_book_page(void) {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+   int itemCount = sizeof(audiobookItems) / sizeof(audiobookItems[0]);
+  menu.setItems(audiobookItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1629,6 +1714,7 @@ void audio_book_page(void) {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos-1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/bengali_book.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -1682,6 +1768,7 @@ void bengali_book_page() {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+ menu.setItems(new String[1]{"bengali book"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1693,6 +1780,7 @@ void bengali_book_page() {
       Serial.println(F("play bengali.wav"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -1715,6 +1803,7 @@ void english_book_page() {
   const char* filename;
   const char* page_num;
   audioConnecttoSD("C/menu/eng/play_english_for_kids.mp3");
+   menu.setItems(new String[1]{"english book"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1726,6 +1815,7 @@ void english_book_page() {
       Serial.println(F("play English for kids"));
       Serial.println();
       print_divider();
+       menu.setSelectedItem(0);
     }
     String page_name = "C/en/num/" + (String)(sub_pos) + ".mp3";
     page_num = page_name.c_str();
@@ -1772,6 +1862,7 @@ void math_book_page() {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+   menu.setItems(new String[1]{"math book"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1783,6 +1874,7 @@ void math_book_page() {
       Serial.println(F("play math.wav"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -1803,6 +1895,8 @@ void calculator_page(void) {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+   int itemCount = sizeof(calculatorItems) / sizeof(calculatorItems[0]);
+  menu.setItems(calculatorItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1821,6 +1915,7 @@ void calculator_page(void) {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos-1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/addition.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -1877,6 +1972,7 @@ void addition_page() {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+   menu.setItems(new String[1]{"addition"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1888,6 +1984,7 @@ void addition_page() {
       Serial.println(F("A+B"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -1904,6 +2001,7 @@ void subtraction_page() {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+  menu.setItems(new String[1]{"subtraction"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1915,6 +2013,7 @@ void subtraction_page() {
       Serial.println(F("A-B"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -1931,6 +2030,7 @@ void multiplication_page() {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+   menu.setItems(new String[1]{"multiplication"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1942,6 +2042,7 @@ void multiplication_page() {
       Serial.println(F("A*B"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -1958,6 +2059,7 @@ void division_page() {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+   menu.setItems(new String[1]{"Division"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1969,6 +2071,7 @@ void division_page() {
       Serial.println(F("A/B"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -2010,6 +2113,7 @@ void wireless_page(void) {
       Serial.println(F("remote_shell"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos-1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/wifi.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -2054,6 +2158,7 @@ void wireless_page(void) {
         case 2: c_page = bluetooth; return;
         case 3: c_page = web_share; return;
         case 4: c_page = remote_shell; return;
+        case 5: c_page = ble_keyboard;return;
       }
     }
     while (millis() - loopstart < 25) {
@@ -2161,6 +2266,8 @@ void bluetooth_page() {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+   int itemCount = sizeof(bluetoothItems) / sizeof(bluetoothItems[0]);
+  menu.setItems(bluetoothItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2175,6 +2282,7 @@ void bluetooth_page() {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos - 1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/bluetooth_on.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -2316,6 +2424,8 @@ void remote_shell_page() {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+    int itemCount = sizeof(remoteshellItems) / sizeof(remoteshellItems[0]);
+  menu.setItems(remoteshellItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2330,6 +2440,7 @@ void remote_shell_page() {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos - 1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/remote_shell_enable.mp3");
       } else if (menu_selected(2, sub_pos)) {
@@ -2372,6 +2483,62 @@ void remote_shell_page() {
     }
   }
 }
+
+//BLE_KEYBOARD SECTION
+void ble_keyboard_page(void) {
+  btn_cancel_isdown = false;
+  btn_accept_isdown = false;
+  bool update_display = true;
+  uint32_t loopstart;
+  menu.setItems(new String[1]{"[..Starting..]"},1);
+  bleKeyboard.begin();
+  unsigned long ble_timer=millis();
+  while (true) {
+    if(millis()-ble_timer>2000 && bleKeyboard.isConnected())menu.setItems(new String[1]{"Connected :-)"},1);
+    if(millis()-ble_timer>2000 && !bleKeyboard.isConnected())menu.setItems(new String[1]{"disConnected :-("},1);
+    loopstart = millis();
+    if (update_display) {
+      update_display = false;
+      menu.setSelectedItem(0);
+    }
+    keypress_detect();
+    if (btn_accept_isdown) {
+      String st = braille_input();
+      char udata = kerneldata_to_userdata(st);
+      if (numlock && numlock_f(udata))bleKeyboard.write(udata);
+      if (!numlock) {
+        if (!capslock && (int)udata > 64 && (int)udata < 92) {
+          udata = (int)udata + 32;
+        }
+        bleKeyboard.write(udata);
+      }
+      Serial.println(udata);
+      btn_accept_isdown = false;
+    }
+    if (btn_backspace_isdown) {
+      Serial.println("bkspc");
+      bleKeyboard.write(KEY_BACKSPACE);
+      btn_backspace_isdown = false;
+    }
+    if (btn_cancel_isdown) {
+      bleKeyboard.end();
+      c_page = wireless;
+      return;
+    }
+    while (millis() - loopstart < 25) {
+      delay(2);
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
 //sim section
 void sim_page(void) {
   btn_cancel_isdown = false;
@@ -2381,6 +2548,8 @@ void sim_page(void) {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+    int itemCount = sizeof(simItems) / sizeof(simItems[0]);
+  menu.setItems(simItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2395,6 +2564,7 @@ void sim_page(void) {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos - 1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/call.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -2445,6 +2615,7 @@ void call_page() {
   uint32_t loopstart;
   const char* num;
   audioConnecttoSD("C/menu/eng/input_number.mp3");
+ menu.setItems(new String[1]{"Call"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2456,6 +2627,7 @@ void call_page() {
       Serial.println(F("call to x"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_accept_isdown) {
@@ -2498,6 +2670,7 @@ void message_page() {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+   menu.setItems(new String[1]{"Message"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2509,6 +2682,7 @@ void message_page() {
       Serial.println(F("message to x"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -2629,7 +2803,8 @@ void language_page() {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
-
+  int itemCount = sizeof(languagemenuItems) / sizeof(languagemenuItems[0]);
+  menu.setItems(languagemenuItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2644,6 +2819,7 @@ void language_page() {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos - 1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/english_language.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -2695,6 +2871,8 @@ void voice_output_page() {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+    int itemCount = sizeof(voicemenuItems) / sizeof(voicemenuItems[0]);
+  menu.setItems(voicemenuItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2709,6 +2887,7 @@ void voice_output_page() {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos - 1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/voice_enable.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -2766,6 +2945,8 @@ void braille_output_page() {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+    int itemCount = sizeof(brailleOutputItems) / sizeof(brailleOutputItems[0]);
+  menu.setItems(brailleOutputItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2779,6 +2960,7 @@ void braille_output_page() {
       Serial.println(F("braille display output disable"));
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos - 1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/display_enable.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -2836,6 +3018,8 @@ void touch_pen_page() {
   bool update_display = true;
   uint32_t loopstart;
   uint8_t sub_pos = 1;
+    int itemCount = sizeof(touchpenItems) / sizeof(touchpenItems[0]);
+  menu.setItems(touchpenItems, itemCount);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2850,6 +3034,7 @@ void touch_pen_page() {
       Serial.println();
       Serial.println();
       print_divider();
+      menu.setSelectedItem(sub_pos - 1);
       if (menu_selected(1, sub_pos)) {
         audioConnecttoSD("C/menu/eng/touch_pen_enable.mp3");
       } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
@@ -2898,6 +3083,7 @@ void update_firmware_page() {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+menu.setItems(new String[1]{"update firmware"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2908,6 +3094,7 @@ void update_firmware_page() {
       audioConnecttoSD("C/menu/eng/activate_update_firmware.mp3");
       Serial.println();
       print_divider();
+      menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_accept_isdown) {
@@ -2930,6 +3117,7 @@ void init_failsafe_protocol_page() {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
+  menu.setItems(new String[1]{"failsafe protocol"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -2940,6 +3128,7 @@ void init_failsafe_protocol_page() {
       audioConnecttoSD("C/menu/eng/activate_failsafe_protocol.mp3");
       Serial.println();
       print_divider();
+        menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_accept_isdown) {
@@ -3189,7 +3378,7 @@ void keypress_detect() {
                 volume = volume + 1;
                 if (volume > 21) volume = 21;
                 audioSetVolume(volume);
-                audioConnecttoSD("/C/sounds/beep.mp3");
+                if(!audiostatus())audioConnecttoSD("/C/sounds/beep.mp3");
                 Serial.println(audioGetVolume());
               }
               else if(control_key_hold&&space_key_hold){
@@ -3208,7 +3397,7 @@ void keypress_detect() {
                 volume = volume - 1;
                 if (volume < 1) volume = 1;
                 audioSetVolume(volume);
-                audioConnecttoSD("/C/sounds/beep.mp3");
+                if(!audiostatus())audioConnecttoSD("/C/sounds/beep.mp3");
                 Serial.println(audioGetVolume());
               }
               else if(control_key_hold&&space_key_hold){
@@ -3224,7 +3413,7 @@ void keypress_detect() {
               } else if (!control_key_hold) btn_down_isdown = true;
             } else if (customKey == 'c') {
               btn_cancel_isdown = true;
-            } else if (customKey == 'b' && (c_page == doc_writing || c_page == call)) {
+            } else if (customKey == 'b' && (c_page == doc_writing||c_page == ble_keyboard || c_page == call)) {
               Serial.println("backspace");
               btn_backspace_isdown = true;
             } else if (customKey == '*') {
@@ -3232,9 +3421,11 @@ void keypress_detect() {
             } else if (customKey == 'C') {
               capslock = !capslock;
               if (capslock) {
+                if(!audiostatus())audioConnecttoSD("/C/sounds/beep.mp3");
                 Serial.println("capslock on");
               }
               if (!capslock) {
+                if(!audiostatus())audioConnecttoSD("/C/sounds/beep.mp3");
                 Serial.println("capslock off");
               }
             } else if (customKey == 'n') {
@@ -3305,7 +3496,7 @@ bool numlock_f(char udata) {
   if (isDigit(udata))
     return true;
   else {
-    audioConnecttoSD("C/sounds/beep.mp3");
+    if(!audiostatus())audioConnecttoSD("/C/sounds/beep.mp3");
     return false;
   }
 }

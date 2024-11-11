@@ -80,7 +80,7 @@ void dispTask(void* parameter) {
   struct dispMessage dispTxTaskMessage;
 
   disp.setPins(16, 15, 7, 1);
-  disp.initDisplay(40);
+  disp.initDisplay(30);
   disp.clear();
 
   while (true) {
@@ -304,6 +304,10 @@ bool audioConnecttohost(const char* host) {
 }
 
 bool audioConnecttoSD(const char* filename) {
+  if (!SD.exists("/")) {
+    Serial.println("SD Card not available");
+    return false;
+  }
   audioTxMessage.cmd = CONNECTTOSD;
   audioTxMessage.txt = filename;
   audioMessage RX = transmitReceive(audioTxMessage);

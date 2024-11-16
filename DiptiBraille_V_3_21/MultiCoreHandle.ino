@@ -80,7 +80,7 @@ void dispTask(void* parameter) {
   struct dispMessage dispTxTaskMessage;
 
   disp.setPins(16, 15, 7, 1);
-  disp.initDisplay(30);
+  disp.initDisplay(DEFAULT_FREQUENCY);
   disp.clear();
 
   while (true) {
@@ -115,10 +115,8 @@ void dispTask(void* parameter) {
         log_i("error");
       }
     }
-    disp.loop();
-    if (!disp.isEnabled()) {
-      vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
+    if (!disp.isEnabled())sleep(1);
+    else disp.loop();
   }
 }
 

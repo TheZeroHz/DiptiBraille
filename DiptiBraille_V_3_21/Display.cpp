@@ -5,7 +5,6 @@ void Display::setPins(int dataPin, int clockPin, int latchPin, int numOFcells) {
   Settings.STCP = latchPin;
   Settings.SHCP = clockPin;
   Settings.quantity = numOFcells;
-  Settings.state = DISPLAY_ENABLE;
   Settings.burning_coefficient = DEFAULT_BURNINGFACTOR;
   Settings.cooling_coefficient = DEFAULT_COOLINGFACTOR;
 }
@@ -55,8 +54,8 @@ int Display::binstrToint(String binary_string) {
 }
 
 void Display::pushToRegister(int base_10) {
- // Serial.print("Push:");
- // Serial.println(base_10);
+  Serial.print("Push:");
+  Serial.println(base_10);
   if (Settings.state == DISPLAY_ENABLE) {
     digitalWrite(Settings.STCP, LOW);
     shiftOut(Settings.DS, Settings.SHCP, LSBFIRST, base_10);

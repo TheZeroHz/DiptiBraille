@@ -1,5 +1,7 @@
 #include "EchoPad.h"
-
+void EchoPad::mode(bool M){
+  ui_mode=M;
+}
 EchoPad::EchoPad(TFT_eSPI& tftInstance):tft(tftInstance){}
 
 void EchoPad::handleUserInput(char input){
@@ -68,7 +70,8 @@ void EchoPad::handleUserInput(char input){
         break;
     }
 
-    drawTextEditor();  // Refresh the display after each input
+   if(ui_mode==WRITER_MODE) drawTextEditor();  // Refresh the display after each input
+   else if(ui_mode==READER_MODE)drawTextReader();
 }
 
 
@@ -105,6 +108,23 @@ void EchoPad::drawTextEditor() {
   // Update the status bar with the current row and column
   drawStatusBar();
 }
+
+void EchoPad::drawTextReader() {
+  // Draw borders and layout
+  drawTitleBar();
+  drawBorders();
+  // Loop through the text buffer and display each character
+  for (int row = 0; row < MAX_ROWS; row++) {
+    for (int col = 0; col < MAX_COLS; col++) {
+      char ch = textBuffer[row][col];
+      tft.setCursor(30 + col * 10, 60 + row * 14);  // Adjust positions for text
+      tft.setTextColor(TFT_WHITE, TFT_BLACK);
+      tft.print(ch);
+    }
+  }
+}
+
+
 // Function to draw the cursor
 void EchoPad:: drawCursor() {
   // Draw the cursor with a different color
@@ -140,4 +160,21 @@ void EchoPad::drawStatusBar() {
   tft.setTextColor(TFT_WHITE, TFT_DARKGREEN);
   tft.setCursor(80, 215);
   tft.printf("Row: %d, Col: %d", currentRow + 1, currentCol + 1);  // Show row and column
+}
+
+void EchoPad::resetEditor() {
+  // Clear the text buffer
+  for (int row = 0; row < MAX_ROWS; row++) {
+    for (int col = 0; col < MAX_COLS; col++) {
+      textBuffer[row][col] = ' ';
+    }
+  }
+
+  // Reset cursor position
+  currentRow = 0;
+  currentCol = 0;
+  cursorState = true;
+
+  if(ui_mode==WRITER_MODE) drawTextEditor();  // Refresh the display after each input
+  else if(ui_mode==READER_MODE)drawTextReader();
 }

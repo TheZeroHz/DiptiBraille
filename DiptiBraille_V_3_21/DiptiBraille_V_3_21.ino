@@ -4,6 +4,7 @@
 #include "TFT_GUI.h"
 #include "qrcode.h"
 #include "EchoPad.h"
+#include "calculator.h"
 
 #define SCREEN_WIDTH 240
 #define SCREEN_HEIGHT 240
@@ -14,6 +15,7 @@ TFT_eSPI tft = TFT_eSPI();  // Create an instance of the TFT_eSPI library
 TFT_eSPI tft2=TFT_eSPI();
 QRcode qrcode (&tft);
 EchoPad echopad(tft2);
+Calculator calc_es(&tft2);
 TFT_GUI menu(tft, SCREEN_WIDTH, SCREEN_HEIGHT, ITEM_HEIGHT, ANIMATION_DURATION);
 
 String rootmenuItems[] = { "Write", "Read", "Audio Book", "Calculator", "Wireless", "Sim", "Settings" };
@@ -61,7 +63,7 @@ bool voice_state = true;
 bool control_key_hold = false;
 bool space_key_hold = false;
 int frequency=0;
-uint8_t volume = 10;
+uint8_t volume = 3;
 int brightness = 100;
 const byte ROWS = 4;
 const byte COLS = 4;
@@ -129,7 +131,8 @@ language eng[] = {
   { 'K', "E101000" },
   { 'L', "E111000" },
   { 'M', "E101100" },
-  { 'N', "E101010" },
+  { 'N', "E101110" },
+  { 'O', "E101010" },
   { 'P', "E111100" },
   { 'Q', "E111110" },
   { 'R', "E111010" },
@@ -155,7 +158,7 @@ language eng[] = {
 #define practice_reading_cnt 3
 #define learn_reading_cnt 3
 #define audio_book_cnt 3
-#define calculator_cnt 4
+#define calculator_cnt 1
 #define wireless_cnt 5
 #define settings_cnt 7
 String set_data = "E000000", s;
@@ -237,7 +240,7 @@ void setup() {
     delay(10);
   }
   frequency=dispGetFreq();
-  audioSetVolume(15);
+  audioSetVolume(3);
   log_i("current display frequency is: %d", dispGetFreq());
   log_i("current volume is: %d", audioGetVolume());
   if (!SD.exists("/")) {
@@ -503,6 +506,8 @@ void doc_writing_page(void) {
   tft.fillScreen(TFT_BLACK);
   echopad.drawTitleBar();        // Draw the title bar
   echopad.drawTextEditor();      // Draw the text editor interface
+  echopad.resetEditor();
+  readFile(SD, "/text.txt");
   while (true) {
     echopad.blinkCursor();
     loopstart = millis();
@@ -527,6 +532,7 @@ void doc_writing_page(void) {
       btn_accept_isdown = false;
     }
     if (btn_backspace_isdown) {
+      echopad.handleUserInput('\b');
       read_for_backspace(SD, "/text.txt");
       int length = s.length();
       s[length - 1] = '\0';
@@ -646,6 +652,7 @@ void practice_alphabet_writing_page(void) {
       getRandomStr(iv_str, 1, "alphabet");
       Serial.print("random char ");
       Serial.println(iv_str);
+      menu.setItems(new String[1]{(String)iv_str}, 1);
       String ch_name = "C/en/alp/" + (String)iv_str + ".mp3";
       ch = ch_name.c_str();
       /**
@@ -854,7 +861,9 @@ void learn_alphabet_writing_page(void) {
   uint32_t loopstart;
   const char* ch;
   uint8_t sub_pos = 65;
-   menu.setItems(new String[1]{"learn alphabet writing"}, 1);
+  menu.setItems(new String[1]{"learn alphabet writing"}, 1);
+  Serial.println("Write correct alphabet shown in display:");
+  audioConnecttoSD("C/menu/eng/write_displayed_alphabet.mp3");
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -870,11 +879,13 @@ void learn_alphabet_writing_page(void) {
     keypress_detect();
     if (btn_accept_isdown) {
       String str_data = (String)((char)(sub_pos));
+      menu.setItems(new String[1]{str_data}, 1);
       String data = userdata_to_kerneldata(str_data);
       String bi_str = data.substring(1);
       String ch_name = "C/en/alp/" + str_data + ".mp3";
       ch = ch_name.c_str();
       audioConnecttoSD(ch);
+      Serial.println(ch);
       Serial.println(bi_str);
       if (disp_state) {
         dispEnable();
@@ -885,8 +896,7 @@ CODE_110:
       if (audiostatus()) {
         goto CODE_110;
       }*/
-      Serial.println("Write correct alphabet shown in display:");
-      audioConnecttoSD("C/menu/eng/write_displayed_alphabet.mp3");
+
       String st = braille_input();
       char alp = kerneldata_to_userdata(st);
       if (str_data.compareTo((String)alp) == 0) audioConnecttoSD("C/sounds/correct.mp3");
@@ -1158,7 +1168,10 @@ void doc_reading_page(void) {
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
-   menu.setItems(new String[1]{"read to text file"}, 1);
+  tft.fillScreen(TFT_BLACK);
+  echopad.resetEditor(); // Reset function declaration
+  readFile(SD, "/text.txt");
+  //menu.setItems(new String[1]{"read to text file"}, 1);
   while (true) {
     loopstart = millis();
     if (update_display) {
@@ -1170,7 +1183,7 @@ void doc_reading_page(void) {
       Serial.println(F("read to text file"));
       Serial.println();
       print_divider();
-      menu.setSelectedItem(0);
+      //menu.setSelectedItem(0);
     }
     keypress_detect();
     if (btn_cancel_isdown) {
@@ -1888,80 +1901,40 @@ void math_book_page() {
 }
 
 void calculator_page(void) {
-  btn_cancel_isdown = false;
-  btn_up_isdown = false;
-  btn_down_isdown = false;
+ btn_cancel_isdown = false;
   btn_accept_isdown = false;
   bool update_display = true;
   uint32_t loopstart;
-  uint8_t sub_pos = 1;
-   int itemCount = sizeof(calculatorItems) / sizeof(calculatorItems[0]);
-  menu.setItems(calculatorItems, itemCount);
+  tft.fillScreen(TFT_BLACK);
   while (true) {
     loopstart = millis();
     if (update_display) {
       update_display = false;
       clear_screen();
-      Serial.println(F("welcome to calculator "));
-      print_divider();
-      print_selected(1, sub_pos);
-      Serial.println(F("addition"));
-      print_selected(2, sub_pos);
-      Serial.println(F("subtraction"));
-      print_selected(3, sub_pos);
-      Serial.println(F("multiplication"));
-      print_selected(4, sub_pos);
-      Serial.println(F("divison"));
-      Serial.println();
-      Serial.println();
-      print_divider();
-      menu.setSelectedItem(sub_pos-1);
-      if (menu_selected(1, sub_pos)) {
-        audioConnecttoSD("C/menu/eng/addition.mp3");
-      } else if (menu_selected(2, sub_pos))  //C/en/alp/A.mp3
-      {
-        audioConnecttoSD("C/menu/eng/subtraction.mp3");
-      } else if (menu_selected(3, sub_pos)) {
-        audioConnecttoSD("C/menu/eng/multiplication.mp3");
-      } else if (menu_selected(4, sub_pos)) {
-        audioConnecttoSD("C/menu/eng/division.mp3");
-      }
+      Serial.println(F("        Calculator "));
     }
     keypress_detect();
-    if (btn_down_isdown) {
-      if (sub_pos == calculator_cnt) {
-        sub_pos = 1;
-      } else {
-        sub_pos++;
-      }
-      update_display = true;
-      btn_down_isdown = false;
-    }
-    if (btn_up_isdown) {
-      if (sub_pos == 1) {
-        sub_pos = calculator_cnt;
-      } else {
-        sub_pos--;
-      }
-      update_display = true;
-      btn_up_isdown = false;
-    }
-
-    if (btn_cancel_isdown) {
-      c_page = root_menu;
-      return;
-      ;
-    }
-
     if (btn_accept_isdown) {
-      switch (sub_pos) {
-        case 1: c_page = addition; return;
-        case 2: c_page = subtraction; return;
-        case 3: c_page = multiplication; return;
-        case 4: c_page = division; return;
+      String st = braille_input();
+      char udata = kerneldata_to_userdata(st);
+      if (numlock && numlock_f(udata)) calc_es.parse(udata);
+      if (!numlock) {
+        if (!capslock && (int)udata > 64 && (int)udata < 92) {
+          udata = (int)udata + 32;
+        }
+        calc_es.parse(udata);
       }
+      btn_accept_isdown = false;
     }
-
+    if (btn_backspace_isdown) {
+      calc_es.parse('\b');
+      btn_backspace_isdown = false;
+    }
+    if (btn_cancel_isdown) {
+      calc_es.reset();
+      c_page =root_menu;
+      return;
+    }
     while (millis() - loopstart < 25) {
       delay(2);
     }
@@ -3315,14 +3288,19 @@ void readFile(fs::FS& fs, const char* path) {
   int cnt = 0;
   while (file.available()) {
     char charRead = file.read();
+    if(c_page==doc_reading)echopad.mode(READER_MODE);
+    else if(c_page==doc_writing)echopad.mode(WRITER_MODE);
+    echopad.handleUserInput(charRead);
+    if(c_page==doc_reading){
     s += (String)charRead;
     if (charRead == ' ') cnt++;
-    if (charRead == '.' || cnt == 25 || !file.available()) {
+    if (charRead == '.' || cnt == 10 || !file.available()) {
       audioConnecttoSpeech(s.c_str(), "en");
       s = "";
       cnt = 0;
       while (audiostatus()) { Serial.println("audio playing"); }
     }
+  }
   }
   Serial.println(s);
   file.close();
@@ -3371,61 +3349,85 @@ void keypress_detect() {
           case PRESSED:
             cnt = 0;
             customKey = customKeypad.key[i].kchar;
-            if (customKey == 'e') {
+
+            if (customKey == 'e' && !control_key_hold) {
               btn_accept_isdown = true;
-            } else if (customKey == 'u') {
-              if (control_key_hold&&!space_key_hold) {
+            }
+            else if(customKey=='1'&&control_key_hold&&c_page==calculator){
+              calc_es.parse('+');
+            }
+            else if(customKey=='2'&&control_key_hold&&c_page==calculator){
+              calc_es.parse('-');
+            }
+            else if(customKey=='3'&&control_key_hold&&c_page==calculator){
+              calc_es.parse('*');
+            }
+            else if(customKey=='4'&&control_key_hold&&c_page==calculator){
+              calc_es.parse('/');
+            }
+            else if(customKey=='5'&&control_key_hold&&c_page==calculator){
+              calc_es.parse('^');
+            }          
+            else if (customKey == 'u') {
+              if (control_key_hold && !space_key_hold) {
                 volume = volume + 1;
                 if (volume > 21) volume = 21;
                 audioSetVolume(volume);
-                if(!audiostatus())audioConnecttoSD("/C/sounds/beep.mp3");
+                if (!audiostatus()) audioConnecttoSD("/C/sounds/beep.mp3");
                 Serial.println(audioGetVolume());
-              }
-              else if(control_key_hold&&space_key_hold){
-                frequency=frequency+5;
+              } else if (control_key_hold && space_key_hold) {
+                frequency = frequency + 5;
                 dispSetFreq((uint8_t)(frequency));
-                 Serial.println(dispGetFreq());
-              }
-               else if (space_key_hold&&!control_key_hold) {
+                Serial.println(dispGetFreq());
+              } else if (space_key_hold && !control_key_hold) {
                 brightness = brightness + 20;
                 if (brightness > 100) brightness = 100;
                 Serial.println(brightness);
                 menu.setBright(brightness);
               } else if (!control_key_hold || !space_key_hold) btn_up_isdown = true;
-            } else if (customKey == 'd') {
-              if (control_key_hold&&!space_key_hold) {
+            }
+
+            else if (customKey == 'd') {
+              if (control_key_hold && !space_key_hold) {
                 volume = volume - 1;
                 if (volume < 1) volume = 1;
                 audioSetVolume(volume);
-                if(!audiostatus())audioConnecttoSD("/C/sounds/beep.mp3");
+                if (!audiostatus()) audioConnecttoSD("/C/sounds/beep.mp3");
                 Serial.println(audioGetVolume());
-              }
-              else if(control_key_hold&&space_key_hold){
-                frequency=frequency-5;
+              } else if (control_key_hold && space_key_hold) {
+                frequency = frequency - 5;
                 dispSetFreq((uint8_t)(frequency));
                 Serial.println(dispGetFreq());
-              }
-              else if (space_key_hold&&!control_key_hold) {
+              } else if (space_key_hold && !control_key_hold) {
                 brightness = brightness - 20;
-                if (brightness < 0) brightness =0;
+                if (brightness < 0) brightness = 0;
                 Serial.println(brightness);
                 menu.setBright(brightness);
               } else if (!control_key_hold) btn_down_isdown = true;
-            } else if (customKey == 'c') {
+            }
+            
+            else if (customKey == 'c') {
               btn_cancel_isdown = true;
-            } else if (customKey == 'b' && (c_page == doc_writing||c_page == ble_keyboard || c_page == call)) {
-              Serial.println("backspace");
+            } 
+            else if (customKey == 'b' && (c_page == doc_writing || c_page == ble_keyboard || c_page == call)) {
               btn_backspace_isdown = true;
-            } else if (customKey == '*') {
+            }
+            else if (customKey == 'e' && control_key_hold && c_page == calculator) {
+              calc_es.parse('\n');
+              audioConnecttoSpeech(calc_es.getResExpr().c_str(), "en");
+              calc_es.reset();
+            }
+
+            else if (customKey == '*') {
               ctrl = true;
             } else if (customKey == 'C') {
               capslock = !capslock;
               if (capslock) {
-                if(!audiostatus())audioConnecttoSD("/C/sounds/beep.mp3");
+                if (!audiostatus()) audioConnecttoSD("/C/sounds/beep.mp3");
                 Serial.println("capslock on");
               }
               if (!capslock) {
-                if(!audiostatus())audioConnecttoSD("/C/sounds/beep.mp3");
+                if (!audiostatus()) audioConnecttoSD("/C/sounds/beep.mp3");
                 Serial.println("capslock off");
               }
             } else if (customKey == 'n') {

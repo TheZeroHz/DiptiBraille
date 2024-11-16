@@ -5,13 +5,13 @@
 
 #define DISPLAY_ENABLE true
 #define DISPLAY_DISABLE false
-#define DEFAULT_STATE DISPLAY_ENABLE
-#define DEFAULT_FREQUENCY 30
+#define DEFAULT_STATE DISPLAY_DISABLE
+#define DEFAULT_FREQUENCY 25 //Working Well
 #define DEFAULT_COOLINGFACTOR 5
-#define DEFAULT_BURNINGFACTOR 1
+#define DEFAULT_BURNINGFACTOR 2
 #define RESET_CODE 128
 #define IDLE_CODE 0
-#define USE_SHIFT_REGISTER 0
+#define USE_SHIFT_REGISTER 1
 
 struct DisplaySettings {
     int STCP, DS, SHCP, frequency, quantity;

@@ -1,11 +1,11 @@
 > <img src="image/_dipti_logo_.png" width="200" height="100"> 
 <img src="image/_diptiV2_layout1_.png" width="400" height="270"><img src="image/_diptiV2_layout3_.png" width="400" height="270">
-<p>DiptiBraille is an affordable keyboard designed for the visually impaired, enabling text input using Braille. It supports document writing, reading, and audio playback for audiobooks. Users can connect an external Braille display for enhanced feedback.Wireless options include WiFi and WebShare for easy data transfer. Essential communication features like call and SMS are included for seamless interaction.</p>
+<p>DiptiBraille is an affordable literacy device for the visually impaired, enabling text input using Braille. It supports document writing, reading, and audio playback for audiobooks. Users can connect an external Braille display for enhanced feedback. Wireless options include WiFi and WebShare for easy data transfer. Essential communication features like calls and SMS are included for seamless interaction.</p>
 
 ># Operating System
 [DiptiOS 3](https://drive.google.com/drive/folders/1-XRWvRZWpASW5opDc2k0D57xcp3DkUi7?usp=sharing) is a pioneering operating system meticulously crafted to cater to the unique needs of braille users. Rooted in the robust framework of [FreeRTOS](https://www.freertos.org/RTOS.html), DiptiOS/3 sets a new standard for accessibility, seamlessly integrating with braille display hardware to deliver unparalleled functionality and ease of use.
 
-Experience the sophistication of DiptiBraille's sleek design and intuitive interface, offering both Demo and Pro versions. <b><i>Unlock the full potential with the Pro Version, priced at $50</i></b>, or explore its capabilities at no cost with the Demo Version.
+Experience the sophistication of DiptiBraille's sleek design and intuitive interface, which offer both demo and pro versions. <b><i>Unlock the full potential with the Pro Version, priced at $50</i></b>, or explore its capabilities at no cost with the Demo Version.
 
 |✅ available|❌ not available|🔄 upcoming|🟡 partially available|
 |------------|-----------------|-----------|-----------------------|
